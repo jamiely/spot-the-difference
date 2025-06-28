@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spot the Difference</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <header>
+        <h1>Spot the Difference</h1>
+    </header>
+    
+    <main>
+        <div id="game-container">
+            <div class="game-board">
+                <div class="image-container">
+                    <canvas id="left-canvas" width="400" height="300"></canvas>
+                    <div class="image-label">Image 1</div>
+                </div>
+                <div class="image-container">
+                    <canvas id="right-canvas" width="400" height="300"></canvas>
+                    <div class="image-label">Image 2</div>
+                </div>
+            </div>
+            
+            <div class="game-controls">
+                <button id="start-game">Start Game</button>
+                <button id="reset-game">Reset</button>
+                <div class="score">
+                    <span>Differences Found: </span>
+                    <span id="score-count">0</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
