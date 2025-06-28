@@ -1070,17 +1070,75 @@ export class PlacementMode {
         setTimeout(checkSprites, 300);
     }
     
-    placeAllSprites() {
+    async placeAllSprites() {
         // Clear current selection since sprites will be regenerated
         this.clearSpriteSelection();
         
-        // Dispatch event to request fresh sprite placement with all sprites
+        // Check if a template is selected
+        const select = document.getElementById('template-select');
+        if (select && select.value) {
+            // Use template positioning instead of random generation
+            try {
+                const template = this.templateManager.getTemplateById(select.value);
+                if (template) {
+                    console.log('Placing sprites using template positions:', template.name);
+                    this.showFeedback('place-all-sprites', 'Placing sprites from template...', 'success');
+                    
+                    // Load template background if needed
+                    await this.loadTemplateBackground(template.background);
+                    
+                    // Create sprites using template positions
+                    await this.createSpritesFromTemplate(template);
+                    
+                    // Re-enable sprite dragging
+                    this.enableSpriteDragging();
+                    this.showFeedback('place-all-sprites', `Placed ${template.sprites.length} sprites from template`, 'success');
+                    return;
+                }
+            } catch (error) {
+                console.error('Failed to place sprites from template:', error);
+                this.showFeedback('place-all-sprites', 'Template loading failed, using random placement', 'warning');
+            }
+        }
+        
+        // Fallback to random sprite placement
         this.dispatchEvent('requestSpriteGeneration', { useAllSprites: true });
         this.showFeedback('place-all-sprites', 'Placing all sprites...', 'success');
         
         // Re-enable sprite dragging after sprites are regenerated
         // Use longer delay and poll for completion
         this.waitForSpritesAndRefresh();
+    }
+    
+    async createSpritesFromTemplate(template) {
+        // Clear existing sprites first
+        this.clearAllSprites();
+        
+        // Get the background image and container for positioning
+        const backgroundImg = document.getElementById('background-image');
+        if (!backgroundImg) {
+            throw new Error('Background image not found');
+        }
+        
+        // Create sprites for each template sprite
+        for (const spriteData of template.sprites) {
+            try {
+                // Request sprite creation from Game.js using the same method as SpotTheDifferenceGame
+                this.dispatchEvent('requestSpriteCreation', {
+                    spriteSrc: spriteData.src,
+                    x: spriteData.x,
+                    y: spriteData.y
+                });
+                
+                // Small delay to prevent overwhelming the system
+                await new Promise(resolve => setTimeout(resolve, 10));
+                
+            } catch (error) {
+                console.warn(`Could not create sprite ${spriteData.src} from template:`, error);
+            }
+        }
+        
+        console.log(`Created ${template.sprites.length} sprites from template`);
     }
     
     resetOutsideSprites() {
