@@ -4,6 +4,7 @@ A modern HTML5-based "Spot the Difference" game built with vanilla JavaScript us
 
 ## Features
 
+- **Spot the Difference Game Mode**: Play a classic spot the difference game.
 - **Background & Sprite System** with configurable sprite placement
 - **Edit Mode** for creating custom bounding boxes (Press 'E')
 - **Placement Mode** for dragging sprites freely (Press 'P')
@@ -81,6 +82,11 @@ npm run preview
 
 ### Game Modes
 
+#### Spot the Difference Mode
+- Find differences between two seemingly identical images.
+- Click on a difference to mark it.
+- Press '!' to reveal all differences.
+
 #### Edit Mode (Press 'E')
 - Create and edit bounding boxes for sprite placement
 - Drag on the background to create new bounding boxes
@@ -99,7 +105,8 @@ npm run preview
 The game uses a modular architecture with the following key components:
 
 ### Core Components
-- **Game.js** - Main game controller and state management
+- **Game.js** - Base game controller and state management
+- **SpotTheDifferenceGame.js** - Extends Game.js for spot the difference specific logic
 - **SpriteManager.js** - Sprite loading, positioning, and collision detection
 - **EditMode.js** - Bounding box creation and management (Press 'E')
 - **PlacementMode.js** - Sprite dragging and positioning (Press 'P')
@@ -108,9 +115,11 @@ The game uses a modular architecture with the following key components:
 ### Utilities
 - **BackgroundLoader.js** - Background image loading and management
 - **AssetConfigLoader.js** - Centralized JSON configuration loading
+- **TemplateManager.js** - Manages game templates (backgrounds and sprite arrangements)
 
 ### Configuration
 - **BoundingBoxConfig.js** - Background-specific bounding boxes and sprite counts
+- **SpriteConfig.js** - Sprite sizing and display configurations
 - **assets.json** - List of available backgrounds and sprites
 
 Components communicate through custom DOM events for loose coupling and maintainability.
@@ -121,17 +130,20 @@ Components communicate through custom DOM events for loose coupling and maintain
 ├── index.html              # Main HTML entry point
 ├── js/
 │   ├── main.js            # Application entry point
-│   ├── Game.js            # Main game controller
+│   ├── Game.js            # Base game controller
+│   ├── SpotTheDifferenceGame.js # Spot the difference game logic
 │   ├── components/        # UI components
 │   │   ├── EditMode.js    # Bounding box editor
 │   │   ├── PlacementMode.js # Sprite placement tool
 │   │   ├── SpriteManager.js # Sprite management
 │   │   └── ScoreDisplay.js # Score UI
 │   ├── config/            # Configuration files
-│   │   └── BoundingBoxConfig.js # Background configs
+│   │   ├── BoundingBoxConfig.js # Background configs
+│   │   └── SpriteConfig.js # Sprite sizing and display
 │   └── utils/             # Utility modules
 │       ├── AssetConfigLoader.js # JSON config loader
-│       └── BackgroundLoader.js # Background loader
+│       ├── BackgroundLoader.js # Background loader
+│       └── TemplateManager.js # Game template management
 ├── config/
 │   └── assets.json        # Available assets list
 ├── backgrounds/           # Background images
