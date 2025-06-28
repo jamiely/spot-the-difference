@@ -208,11 +208,11 @@ export class SpriteManager {
         return this.activeSprites.length;
     }
 
-    displayAllSprites(boundingBoxes = []) {
+    displayAllSprites(boundingBoxes = [], spriteCount = 50) {
         this.clearSprites();
         
-        // Randomly select 50 sprites from all available sprites
-        const randomSprites = this.getRandomSprites(50);
+        // Randomly select the specified number of sprites from all available sprites
+        const randomSprites = this.getRandomSprites(spriteCount);
         
         // Add a small delay to ensure background image is properly rendered
         setTimeout(() => {
@@ -256,7 +256,7 @@ export class SpriteManager {
         return randomSprites.length;
     }
     
-    calculateSpriteDistribution(boundingBoxes, totalSprites = 50) {
+    calculateSpriteDistribution(boundingBoxes, totalSprites) {
         // Calculate area-based capacity for each bounding box
         const spriteSize = 40;
         const buffer = 5;

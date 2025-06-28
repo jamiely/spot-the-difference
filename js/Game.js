@@ -2,7 +2,7 @@ import { ScoreDisplay } from './components/ScoreDisplay.js';
 import { SpriteManager } from './components/SpriteManager.js';
 import { EditMode } from './components/EditMode.js';
 import { BackgroundLoader } from './utils/BackgroundLoader.js';
-import { getBoundingBoxesForBackground } from './config/BoundingBoxConfig.js';
+import { getBoundingBoxesForBackground, getSpriteCountForBackground } from './config/BoundingBoxConfig.js';
 
 export class Game {
     constructor() {
@@ -72,8 +72,10 @@ export class Game {
         }
         
         const boundingBoxes = this.editMode.getBoundingBoxes();
-        const spritesDisplayed = this.spriteManager.displayAllSprites(boundingBoxes);
-        console.log('Sprites displayed:', spritesDisplayed, 'Available sprites:', this.spriteManager.getLoadedSpritesCount());
+        const spriteCount = this.currentBackgroundFilename ? 
+            getSpriteCountForBackground(this.currentBackgroundFilename) : 50;
+        const spritesDisplayed = this.spriteManager.displayAllSprites(boundingBoxes, spriteCount);
+        console.log('Sprites displayed:', spritesDisplayed, 'Target count:', spriteCount, 'Available sprites:', this.spriteManager.getLoadedSpritesCount());
     }
 
     loadBackgroundBoundingBoxes() {
@@ -132,7 +134,9 @@ export class Game {
         } else {
             if (this.isGameActive) {
                 const boundingBoxes = this.editMode.getBoundingBoxes();
-                this.spriteManager.displayAllSprites(boundingBoxes);
+                const spriteCount = this.currentBackgroundFilename ? 
+                    getSpriteCountForBackground(this.currentBackgroundFilename) : 50;
+                this.spriteManager.displayAllSprites(boundingBoxes, spriteCount);
             }
         }
     }
