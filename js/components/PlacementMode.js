@@ -56,13 +56,16 @@ export class PlacementMode {
     
     enterPlacementMode() {
         console.log('Entering placement mode');
-        this.enableSpriteDragging();
+        this.switchToSingleView();
+        this.clearAllSprites(); // Clear all sprites first
+        this.enableSpriteDragging(); // This will now find no sprites
         this.showPlacementInterface();
         document.body.classList.add('placement-mode');
     }
     
     exitPlacementMode() {
         console.log('Exiting placement mode');
+        this.switchToSideBySideView();
         this.disableSpriteDragging();
         this.hidePlacementInterface();
         this.clearSpriteSelection(); // Clear any selected sprite
@@ -1354,5 +1357,108 @@ export class PlacementMode {
                 document.body.removeChild(modal);
             }
         });
+    }
+    
+    switchToSingleView() {
+        // Hide side-by-side boards and show legacy single board
+        const gameBoardsContainer = document.querySelector('.game-boards');
+        const legacyBoard = document.getElementById('legacy-game-board');
+        
+        if (gameBoardsContainer) {
+            gameBoardsContainer.style.display = 'none';
+        }
+        
+        if (legacyBoard) {
+            legacyBoard.style.display = 'flex';
+            
+            // Clear any existing sprites first, then copy background only
+            this.clearLegacyBoard();
+            this.copyBackgroundToLegacyBoard();
+        }
+    }
+    
+    switchToSideBySideView() {
+        // Hide legacy board and show side-by-side boards
+        const gameBoardsContainer = document.querySelector('.game-boards');
+        const legacyBoard = document.getElementById('legacy-game-board');
+        
+        if (legacyBoard) {
+            legacyBoard.style.display = 'none';
+        }
+        
+        if (gameBoardsContainer) {
+            gameBoardsContainer.style.display = 'flex';
+        }
+    }
+    
+    copyContentToLegacyBoard() {
+        const leftBoard = document.getElementById('game-board-left');
+        const legacyBoard = document.getElementById('legacy-game-board');
+        const leftBackground = document.getElementById('background-image-left');
+        const legacyBackground = document.getElementById('background-image');
+        
+        if (leftBackground && legacyBackground) {
+            // Copy background image
+            legacyBackground.src = leftBackground.src;
+            legacyBackground.style.display = leftBackground.style.display;
+            legacyBackground.style.width = leftBackground.style.width;
+            legacyBackground.style.maxWidth = leftBackground.style.maxWidth;
+            legacyBackground.style.height = leftBackground.style.height;
+            legacyBackground.style.borderRadius = leftBackground.style.borderRadius;
+        }
+        
+        // Clear existing sprites in legacy board
+        if (legacyBoard) {
+            const existingSprites = legacyBoard.querySelectorAll('.game-sprite');
+            existingSprites.forEach(sprite => sprite.remove());
+        }
+        
+        // Don't copy sprites automatically - only show them when "Place All Sprites" is clicked
+        // This prevents the massive number of duplicate sprites from being shown in placement mode
+    }
+    
+    clearLegacyBoard() {
+        const legacyBoard = document.getElementById('legacy-game-board');
+        if (legacyBoard) {
+            // Remove all sprites from legacy board
+            const existingSprites = legacyBoard.querySelectorAll('.game-sprite');
+            existingSprites.forEach(sprite => sprite.remove());
+            
+            // Clear any difference markers
+            const markers = legacyBoard.querySelectorAll('.difference-marker');
+            markers.forEach(marker => marker.remove());
+        }
+    }
+    
+    clearAllSprites() {
+        // Remove all sprites from the entire game container
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) {
+            const allSprites = gameContainer.querySelectorAll('.game-sprite');
+            allSprites.forEach(sprite => sprite.remove());
+            
+            // Clear any difference markers
+            const allMarkers = gameContainer.querySelectorAll('.difference-marker');
+            allMarkers.forEach(marker => marker.remove());
+        }
+        
+        // Clear sprite positions in placement mode
+        this.spritePositions = [];
+        this.updatePositionDisplay(null);
+    }
+    
+    copyBackgroundToLegacyBoard() {
+        const leftBackground = document.getElementById('background-image-left');
+        const legacyBackground = document.getElementById('background-image');
+        
+        if (leftBackground && legacyBackground) {
+            // Copy background image properties only
+            legacyBackground.src = leftBackground.src;
+            legacyBackground.style.display = leftBackground.style.display;
+            legacyBackground.style.width = leftBackground.style.width;
+            legacyBackground.style.maxWidth = leftBackground.style.maxWidth;
+            legacyBackground.style.height = leftBackground.style.height;
+            legacyBackground.style.borderRadius = leftBackground.style.borderRadius;
+        }
     }
 }

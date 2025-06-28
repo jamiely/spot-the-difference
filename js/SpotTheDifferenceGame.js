@@ -187,10 +187,17 @@ export class SpotTheDifferenceGame extends Game {
     positionSpriteOnSide(sprite, spriteData, side) {
         const backgroundImg = document.getElementById(`background-image-${side}`);
         if (backgroundImg) {
-            // Position sprite relative to the background image's top-left corner
-            // The background images are already properly positioned within their containers
-            sprite.style.left = spriteData.x + 'px';
-            sprite.style.top = spriteData.y + 'px';
+            const container = backgroundImg.parentElement;
+            const containerRect = container.getBoundingClientRect();
+            const bgRect = backgroundImg.getBoundingClientRect();
+            
+            // Calculate the offset of the background image within its container
+            const bgOffsetX = bgRect.left - containerRect.left;
+            const bgOffsetY = bgRect.top - containerRect.top;
+            
+            // Position sprite relative to background image position within the container
+            sprite.style.left = (bgOffsetX + spriteData.x) + 'px';
+            sprite.style.top = (bgOffsetY + spriteData.y) + 'px';
         }
     }
     
@@ -306,9 +313,15 @@ export class SpotTheDifferenceGame extends Game {
         const board = document.getElementById(`game-board-${side}`);
         const backgroundImg = document.getElementById(`background-image-${side}`);
         
-        // Position marker directly at background coordinates since sprites are positioned relative to background
-        const markerX = x;
-        const markerY = y;
+        // Calculate the offset of the background image within its container
+        const containerRect = board.getBoundingClientRect();
+        const bgRect = backgroundImg.getBoundingClientRect();
+        const bgOffsetX = bgRect.left - containerRect.left;
+        const bgOffsetY = bgRect.top - containerRect.top;
+        
+        // Position marker relative to background image position within the container
+        const markerX = bgOffsetX + x;
+        const markerY = bgOffsetY + y;
         
         const marker = document.createElement('div');
         marker.className = 'difference-marker found';
