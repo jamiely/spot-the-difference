@@ -1,3 +1,5 @@
+import { AssetConfigLoader } from '../utils/AssetConfigLoader.js';
+
 export class SpriteManager {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
@@ -5,28 +7,12 @@ export class SpriteManager {
         this.loadedSprites = [];
         this.activeSprites = [];
         this.spritePositions = []; // Track positions for collision detection
+        this.configLoader = new AssetConfigLoader();
     }
 
     async loadAvailableSprites() {
         try {
-            const knownSprites = [
-                'art_scissors.png', 'beaded_necklace.png', 'bitten_apple.png', 'cat_drawing.png',
-                'chalkboard_eraser.png', 'cookie_chocolate_chip.png', 'cookie_plain.png', 'covid_lanyard.png',
-                'crumpled_paper.png', 'dual_colored_eraser.png', 'flashlight_keychain.png', 'flower_keychain.png',
-                'four_leaf_clover.png', 'glue_stick.png', 'gold_star.png', 'gradient_diamond.png',
-                'green_beret.png', 'green_frog_toy.png', 'green_lunchbox.png', 'green_robot.png',
-                'hair_clip.png', 'homework_paper.png', 'jump_rope.png', 'kids_watch.png',
-                'leaf_wreath.png', 'loose_chain.png', 'lunch_bag_orange.png', 'lunch_lady.png',
-                'lunch_menu.png', 'moldy_eraser.png', 'name_tag.png', 'open_storybook.png',
-                'orange_crayon.png', 'orange_crayon_tip.png', 'orange_lollipop.png', 'orange_ruler.png',
-                'orange_sock.png', 'paint_on_palette.png', 'paintbrush.png', 'paper_airplane.png',
-                'paper_snowflake.png', 'pencil_case.png', 'permission_slip.png', 'pink_backpack.png',
-                'purple_glasses.png', 'rain_boot.png', 'school_dance_flyer.png', 'shoelace.png',
-                'small_orange_diamond.png', 'small_yellow_diamond.png', 'spilled_glue.png', 'spilled_juice_box.png',
-                'spilled_paint_cup.png', 'star_wand.png', 'striped_sock.png', 'tape_dispenser.png',
-                'torn_paper_strip.png', 'toy_dinosaur.png', 'watercolor_paint_set.png', 'winter_mitten.png',
-                'winter_mittens.png', 'yellow_crayon_piece.png', 'yellow_pencil.png'
-            ];
+            const knownSprites = await this.configLoader.getSprites();
             
             console.log('Checking sprites with path:', this.spritesPath);
             const sprites = [];
@@ -107,7 +93,7 @@ export class SpriteManager {
         const relativeLeft = bgRect.left - containerRect.left;
         const relativeTop = bgRect.top - containerRect.top;
         
-        const spriteSize = 40; // sprite width/height from CSS
+        const spriteSize = 64; // sprite width/height from CSS
         const maxAttempts = 50; // Maximum attempts to find non-colliding position
         
         let position = null;
@@ -258,7 +244,7 @@ export class SpriteManager {
     
     calculateSpriteDistribution(boundingBoxes, totalSprites) {
         // Calculate area-based capacity for each bounding box
-        const spriteSize = 40;
+        const spriteSize = 64;
         const buffer = 5;
         const effectiveSpriteSize = spriteSize + buffer;
         

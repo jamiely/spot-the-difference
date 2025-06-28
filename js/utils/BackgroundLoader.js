@@ -1,12 +1,15 @@
+import { AssetConfigLoader } from './AssetConfigLoader.js';
+
 export class BackgroundLoader {
     constructor() {
         this.backgroundsPath = './backgrounds/';
         this.loadedBackgrounds = [];
+        this.configLoader = new AssetConfigLoader();
     }
 
     async loadAvailableBackgrounds() {
         try {
-            const knownBackgrounds = ['bookcase.png'];
+            const knownBackgrounds = await this.configLoader.getBackgrounds();
             const backgrounds = [];
             
             for (const filename of knownBackgrounds) {
