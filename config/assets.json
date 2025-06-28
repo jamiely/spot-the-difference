@@ -1,53 +1,340 @@
 {
+  "meta": {
+    "generated": "2025-06-28T14:02:44.982Z",
+    "backgroundCount": 1,
+    "spriteCount": 46
+  },
   "backgrounds": [
-    "bookcase.png"
+    {
+      "filename": "bookcase.png",
+      "width": 1024,
+      "height": 1536,
+      "type": "png",
+      "size": 2989906
+    }
   ],
   "sprites": [
-    "art_scissors.png",
-    "bitten_apple.png",
-    "cat_drawing.png",
-    "coin_purse.png",
-    "covid_lanyard.png",
-    "crumpled_paper.png",
-    "flashlight_keychain.png",
-    "flower_keychain.png",
-    "four_leaf_clover.png",
-    "glue_stick.png",
-    "gold_star.png",
-    "green_frog_toy.png",
-    "green_lunchbox.png",
-    "green_robot.png",
-    "homework_paper.png",
-    "jump_rope.png",
-    "kids_watch.png",
-    "leaf_wreath.png",
-    "lunch_bag_orange.png",
-    "lunch_menu.png",
-    "name_tag.png",
-    "open_storybook.png",
-    "orange_crayon.png",
-    "orange_lollipop.png",
-    "orange_ruler.png",
-    "orange_sock.png",
-    "paintbrush.png",
-    "paper_airplane.png",
-    "paper_snowflake.png",
-    "pencil_case.png",
-    "permission_slip.png",
-    "pink_backpack.png",
-    "purple_glasses.png",
-    "rain_boot.png",
-    "school_dance_flyer.png",
-    "spilled_glue.png",
-    "spilled_juice_box.png",
-    "spilled_paint_cup.png",
-    "star_wand.png",
-    "striped_sock.png",
-    "tape_dispenser.png",
-    "toy_dinosaur.png",
-    "watercolor_paint_set.png",
-    "winter_mitten.png",
-    "winter_mittens.png",
-    "yellow_pencil.png"
+    {
+      "filename": "art_scissors.png",
+      "width": 362,
+      "height": 286,
+      "type": "png",
+      "size": 97233
+    },
+    {
+      "filename": "bitten_apple.png",
+      "width": 282,
+      "height": 352,
+      "type": "png",
+      "size": 181048
+    },
+    {
+      "filename": "cat_drawing.png",
+      "width": 328,
+      "height": 276,
+      "type": "png",
+      "size": 152598
+    },
+    {
+      "filename": "coin_purse.png",
+      "width": 303,
+      "height": 216,
+      "type": "png",
+      "size": 125136
+    },
+    {
+      "filename": "covid_lanyard.png",
+      "width": 243,
+      "height": 277,
+      "type": "png",
+      "size": 67070
+    },
+    {
+      "filename": "crumpled_paper.png",
+      "width": 279,
+      "height": 253,
+      "type": "png",
+      "size": 126669
+    },
+    {
+      "filename": "flashlight_keychain.png",
+      "width": 260,
+      "height": 239,
+      "type": "png",
+      "size": 60402
+    },
+    {
+      "filename": "flower_keychain.png",
+      "width": 170,
+      "height": 200,
+      "type": "png",
+      "size": 40500
+    },
+    {
+      "filename": "four_leaf_clover.png",
+      "width": 119,
+      "height": 171,
+      "type": "png",
+      "size": 33224
+    },
+    {
+      "filename": "glue_stick.png",
+      "width": 89,
+      "height": 245,
+      "type": "png",
+      "size": 54725
+    },
+    {
+      "filename": "gold_star.png",
+      "width": 277,
+      "height": 254,
+      "type": "png",
+      "size": 111596
+    },
+    {
+      "filename": "green_frog_toy.png",
+      "width": 185,
+      "height": 228,
+      "type": "png",
+      "size": 79644
+    },
+    {
+      "filename": "green_lunchbox.png",
+      "width": 307,
+      "height": 300,
+      "type": "png",
+      "size": 182508
+    },
+    {
+      "filename": "green_robot.png",
+      "width": 250,
+      "height": 350,
+      "type": "png",
+      "size": 166273
+    },
+    {
+      "filename": "homework_paper.png",
+      "width": 376,
+      "height": 328,
+      "type": "png",
+      "size": 208872
+    },
+    {
+      "filename": "jump_rope.png",
+      "width": 384,
+      "height": 282,
+      "type": "png",
+      "size": 149305
+    },
+    {
+      "filename": "kids_watch.png",
+      "width": 223,
+      "height": 368,
+      "type": "png",
+      "size": 163734
+    },
+    {
+      "filename": "leaf_wreath.png",
+      "width": 229,
+      "height": 243,
+      "type": "png",
+      "size": 81888
+    },
+    {
+      "filename": "lunch_bag_orange.png",
+      "width": 224,
+      "height": 233,
+      "type": "png",
+      "size": 72622
+    },
+    {
+      "filename": "lunch_menu.png",
+      "width": 233,
+      "height": 217,
+      "type": "png",
+      "size": 87724
+    },
+    {
+      "filename": "name_tag.png",
+      "width": 378,
+      "height": 284,
+      "type": "png",
+      "size": 231203
+    },
+    {
+      "filename": "open_storybook.png",
+      "width": 576,
+      "height": 375,
+      "type": "png",
+      "size": 490259
+    },
+    {
+      "filename": "orange_crayon.png",
+      "width": 229,
+      "height": 162,
+      "type": "png",
+      "size": 48694
+    },
+    {
+      "filename": "orange_lollipop.png",
+      "width": 140,
+      "height": 216,
+      "type": "png",
+      "size": 41846
+    },
+    {
+      "filename": "orange_ruler.png",
+      "width": 437,
+      "height": 407,
+      "type": "png",
+      "size": 168153
+    },
+    {
+      "filename": "orange_sock.png",
+      "width": 289,
+      "height": 235,
+      "type": "png",
+      "size": 93038
+    },
+    {
+      "filename": "paintbrush.png",
+      "width": 228,
+      "height": 311,
+      "type": "png",
+      "size": 51195
+    },
+    {
+      "filename": "paper_airplane.png",
+      "width": 336,
+      "height": 258,
+      "type": "png",
+      "size": 100204
+    },
+    {
+      "filename": "paper_snowflake.png",
+      "width": 204,
+      "height": 208,
+      "type": "png",
+      "size": 65000
+    },
+    {
+      "filename": "pencil_case.png",
+      "width": 299,
+      "height": 180,
+      "type": "png",
+      "size": 89846
+    },
+    {
+      "filename": "permission_slip.png",
+      "width": 324,
+      "height": 283,
+      "type": "png",
+      "size": 151046
+    },
+    {
+      "filename": "pink_backpack.png",
+      "width": 306,
+      "height": 300,
+      "type": "png",
+      "size": 169612
+    },
+    {
+      "filename": "purple_glasses.png",
+      "width": 357,
+      "height": 184,
+      "type": "png",
+      "size": 74917
+    },
+    {
+      "filename": "rain_boot.png",
+      "width": 285,
+      "height": 325,
+      "type": "png",
+      "size": 168985
+    },
+    {
+      "filename": "school_dance_flyer.png",
+      "width": 286,
+      "height": 261,
+      "type": "png",
+      "size": 122717
+    },
+    {
+      "filename": "spilled_glue.png",
+      "width": 485,
+      "height": 312,
+      "type": "png",
+      "size": 202702
+    },
+    {
+      "filename": "spilled_juice_box.png",
+      "width": 295,
+      "height": 292,
+      "type": "png",
+      "size": 156718
+    },
+    {
+      "filename": "spilled_paint_cup.png",
+      "width": 282,
+      "height": 268,
+      "type": "png",
+      "size": 121495
+    },
+    {
+      "filename": "star_wand.png",
+      "width": 82,
+      "height": 106,
+      "type": "png",
+      "size": 12854
+    },
+    {
+      "filename": "striped_sock.png",
+      "width": 193,
+      "height": 346,
+      "type": "png",
+      "size": 117760
+    },
+    {
+      "filename": "tape_dispenser.png",
+      "width": 259,
+      "height": 142,
+      "type": "png",
+      "size": 59916
+    },
+    {
+      "filename": "toy_dinosaur.png",
+      "width": 205,
+      "height": 226,
+      "type": "png",
+      "size": 75246
+    },
+    {
+      "filename": "watercolor_paint_set.png",
+      "width": 402,
+      "height": 300,
+      "type": "png",
+      "size": 211945
+    },
+    {
+      "filename": "winter_mitten.png",
+      "width": 214,
+      "height": 274,
+      "type": "png",
+      "size": 100571
+    },
+    {
+      "filename": "winter_mittens.png",
+      "width": 218,
+      "height": 173,
+      "type": "png",
+      "size": 55293
+    },
+    {
+      "filename": "yellow_pencil.png",
+      "width": 290,
+      "height": 171,
+      "type": "png",
+      "size": 63552
+    }
   ]
 }

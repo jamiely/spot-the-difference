@@ -1,80 +1,66 @@
 export const BACKGROUND_CONFIG = {
-    'bookcase.png': {
-        spriteCount: 25,
-        boundingBoxes: [
-            {
-                "id": 1751078097964,
-                "x": 23,
-                "y": -0.4666595458984375,
-                "width": 170,
-                "height": 113
-            },
-            {
-                "id": 1751078102579,
-                "x": 174,
-                "y": 22.533340454101562,
-                "width": 176,
-                "height": 101
-            },
-            {
-                "id": 1751078106421,
-                "x": 96,
-                "y": 100.53334045410156,
-                "width": 247,
-                "height": 130
-            },
-            {
-                "id": 1751078108865,
-                "x": 86,
-                "y": 221.53334045410156,
-                "width": 258,
-                "height": 125
-            },
-            {
-                "id": 1751078111614,
-                "x": 158,
-                "y": 352.53334045410156,
-                "width": 185,
-                "height": 148
-            },
-            {
-                "id": 1751078115664,
-                "x": 5,
-                "y": 364.53334045410156,
-                "width": 88,
-                "height": 251
-            },
-            {
-                "id": 1751078120435,
-                "x": 324,
-                "y": 384.53334045410156,
-                "width": 87,
-                "height": 231
-            },
-            {
-                "id": 1751078127714,
-                "x": 97,
-                "y": 483.53334045410156,
-                "width": 229,
-                "height": 134
-            },
-            {
-                "id": 1751078147216,
-                "x": 352,
-                "y": 135.53334045410156,
-                "width": 60,
-                "height": 103
-            }
-        ]
-    }
+  "bookcase.png": {
+    spriteCount: 25,
+    boundingBoxes: [
+      {
+        id: 1751079259584,
+        x: 20,
+        y: 3.0333404541015625,
+        width: 327,
+        height: 108,
+      },
+      {
+        id: 1751079262586,
+        x: 89,
+        y: 76.03334045410156,
+        width: 257,
+        height: 163,
+      },
+      {
+        id: 1751079265351,
+        x: 93,
+        y: 221.03334045410156,
+        width: 252,
+        height: 125,
+      },
+      {
+        id: 1751079270785,
+        x: 173,
+        y: 348.03334045410156,
+        width: 241,
+        height: 272,
+      },
+      {
+        id: 1751079277052,
+        x: 351,
+        y: 162.03334045410156,
+        width: 63,
+        height: 67,
+      },
+      {
+        id: 1751079288904,
+        x: 3,
+        y: 505.03334045410156,
+        width: 172,
+        height: 111,
+      },
+      {
+        id: 1751079294122,
+        x: 3,
+        y: 360.03334045410156,
+        width: 89,
+        height: 144,
+      },
+    ],
+  },
 };
 
 export function getBoundingBoxesForBackground(backgroundFilename) {
-    const config = BACKGROUND_CONFIG[backgroundFilename];
-    return config ? config.boundingBoxes : [];
+  const config = BACKGROUND_CONFIG[backgroundFilename];
+  return config ? config.boundingBoxes : [];
 }
 
 export function getSpriteCountForBackground(backgroundFilename) {
-    const config = BACKGROUND_CONFIG[backgroundFilename];
-    return config ? config.spriteCount : 50; // Default to 50 if not configured
+  const config = BACKGROUND_CONFIG[backgroundFilename];
+  return config ? config.spriteCount : 50; // Default to 50 if not configured
 }

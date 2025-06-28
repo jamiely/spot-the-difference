@@ -1,3 +1,7 @@
+:root {
+    --sprite-size: 80px; /* Default size, will be overridden by JavaScript with actual dimensions */
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -144,8 +148,8 @@ button:disabled {
 
 .game-sprite {
     position: absolute;
-    width: 80px;
-    height: 80px;
+    width: var(--sprite-size);
+    height: var(--sprite-size);
     object-fit: contain;
     z-index: 10;
     pointer-events: none;
@@ -205,8 +209,8 @@ button:disabled {
     }
     
     .game-sprite {
-        width: 60px;
-        height: 60px;
+        width: var(--sprite-size);
+        height: var(--sprite-size);
     }
 }
 
@@ -321,4 +325,210 @@ button:disabled {
 
 #clear-boxes:hover {
     background: #c53030;
+}
+
+/* Placement Mode Styles */
+.placement-mode {
+    cursor: default;
+}
+
+.placement-mode .game-sprite {
+    cursor: move !important;
+    pointer-events: auto !important;
+    transition: none !important; /* Disable transitions during dragging */
+}
+
+.placement-mode .game-sprite:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.placement-mode .game-sprite.selected-sprite {
+    filter: brightness(1.1);
+}
+
+.sprite-selection-indicator {
+    border: 3px solid #4a90e2;
+    border-radius: 8px;
+    background: rgba(74, 144, 226, 0.1);
+    box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+    animation: selection-pulse 2s ease-in-out infinite;
+}
+
+@keyframes selection-pulse {
+    0% { 
+        box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+        border-color: #4a90e2;
+    }
+    50% { 
+        box-shadow: 0 0 20px rgba(74, 144, 226, 0.8);
+        border-color: #357abd;
+    }
+    100% { 
+        box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+        border-color: #4a90e2;
+    }
+}
+
+.layer-feedback {
+    white-space: nowrap;
+    user-select: none;
+}
+
+#placement-panel {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 300px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #4a90e2;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: none;
+}
+
+#placement-panel h3 {
+    margin: 0 0 0.5rem 0;
+    color: #2d3748;
+    font-size: 1.1rem;
+}
+
+#placement-panel p {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: #4a5568;
+}
+
+#placement-panel label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+#sprite-positions-json {
+    width: 100%;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    padding: 0.5rem;
+    resize: vertical;
+    margin-bottom: 1rem;
+}
+
+.placement-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+#copy-positions, #load-positions, #clear-positions {
+    background: #4a90e2;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    flex: 1;
+    min-width: 80px;
+}
+
+#copy-positions:hover, #load-positions:hover {
+    background: #357abd;
+}
+
+#clear-positions {
+    background: #e53e3e;
+}
+
+#clear-positions:hover {
+    background: #c53030;
+}
+
+.placement-actions {
+    margin-bottom: 1rem;
+}
+
+#place-all-sprites {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    width: 100%;
+}
+
+#place-all-sprites:hover {
+    background: #218838;
+}
+
+/* Trash Bin Styles */
+#trash-bin {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #e53e3e;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1001;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+#trash-bin:hover,
+#trash-bin.trash-hover {
+    background: rgba(229, 62, 62, 0.1);
+    border-color: #c53030;
+    transform: scale(1.1);
+}
+
+.trash-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.2rem;
+}
+
+.trash-label {
+    font-size: 0.6rem;
+    color: #666;
+    text-align: center;
+    font-weight: bold;
+}
+
+.trash-feedback {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1002;
+}
+
+.trash-feedback::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: #28a745;
 }

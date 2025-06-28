@@ -1,6 +1,7 @@
 import { ScoreDisplay } from './components/ScoreDisplay.js';
 import { SpriteManager } from './components/SpriteManager.js';
 import { EditMode } from './components/EditMode.js';
+import { PlacementMode } from './components/PlacementMode.js';
 import { BackgroundLoader } from './utils/BackgroundLoader.js';
 import { getBoundingBoxesForBackground, getSpriteCountForBackground } from './config/BoundingBoxConfig.js';
 
@@ -9,6 +10,7 @@ export class Game {
         this.scoreDisplay = new ScoreDisplay('score-count');
         this.spriteManager = new SpriteManager('game-container');
         this.editMode = new EditMode();
+        this.placementMode = new PlacementMode();
         this.backgroundLoader = new BackgroundLoader();
         this.isGameActive = false;
         this.currentBackgroundFilename = null;
@@ -28,6 +30,14 @@ export class Game {
         
         document.addEventListener('editModeToggled', (e) => {
             this.handleEditModeToggle(e.detail);
+        });
+        
+        document.addEventListener('placementModeToggled', (e) => {
+            this.handlePlacementModeToggle(e.detail);
+        });
+        
+        document.addEventListener('requestSpriteGeneration', (e) => {
+            this.handleSpriteGenerationRequest(e.detail);
         });
     }
     
@@ -74,7 +84,7 @@ export class Game {
         const boundingBoxes = this.editMode.getBoundingBoxes();
         const spriteCount = this.currentBackgroundFilename ? 
             getSpriteCountForBackground(this.currentBackgroundFilename) : 50;
-        const spritesDisplayed = this.spriteManager.displayAllSprites(boundingBoxes, spriteCount);
+        const spritesDisplayed = await this.spriteManager.displayAllSprites(boundingBoxes, spriteCount);
         console.log('Sprites displayed:', spritesDisplayed, 'Target count:', spriteCount, 'Available sprites:', this.spriteManager.getLoadedSpritesCount());
     }
 
@@ -127,16 +137,57 @@ export class Game {
         document.dispatchEvent(event);
     }
     
-    handleEditModeToggle(detail) {
+    async handleEditModeToggle(detail) {
         console.log('Edit mode toggled:', detail.isActive);
         if (detail.isActive) {
+            // Exit placement mode if active
+            if (this.placementMode.isActive) {
+                this.placementMode.togglePlacementMode();
+            }
             this.spriteManager.clearSprites();
         } else {
             if (this.isGameActive) {
                 const boundingBoxes = this.editMode.getBoundingBoxes();
                 const spriteCount = this.currentBackgroundFilename ? 
                     getSpriteCountForBackground(this.currentBackgroundFilename) : 50;
-                this.spriteManager.displayAllSprites(boundingBoxes, spriteCount);
+                await this.spriteManager.displayAllSprites(boundingBoxes, spriteCount);
+            }
+        }
+    }
+    
+    async handlePlacementModeToggle(detail) {
+        console.log('Placement mode toggled:', detail.isActive);
+        if (detail.isActive) {
+            // Exit edit mode if active
+            if (this.editMode.isActive) {
+                this.editMode.toggleEditMode();
+            }
+            // Ensure sprites are visible for placement, but only if not already present
+            if (this.isGameActive && this.spriteManager.getSpriteCount() === 0) {
+                const boundingBoxes = this.editMode.getBoundingBoxes();
+                const spriteCount = this.currentBackgroundFilename ? 
+                    getSpriteCountForBackground(this.currentBackgroundFilename) : 50;
+                await this.spriteManager.displayAllSprites(boundingBoxes, spriteCount);
+            }
+        }
+        // Don't regenerate sprites when exiting placement mode to preserve positions
+    }
+    
+    async handleSpriteGenerationRequest(detail) {
+        console.log('Sprite generation requested', detail);
+        if (this.isGameActive) {
+            const boundingBoxes = this.editMode.getBoundingBoxes();
+            
+            if (detail.useAllSprites) {
+                // Use all available sprites regardless of configured limit
+                const allSpritesCount = this.spriteManager.getLoadedSpritesCount();
+                console.log(`Placing all ${allSpritesCount} available sprites`);
+                await this.spriteManager.displayAllSprites(boundingBoxes, allSpritesCount);
+            } else {
+                // Use configured sprite count
+                const spriteCount = this.currentBackgroundFilename ? 
+                    getSpriteCountForBackground(this.currentBackgroundFilename) : 50;
+                await this.spriteManager.displayAllSprites(boundingBoxes, spriteCount);
             }
         }
     }
@@ -145,7 +196,8 @@ export class Game {
         return {
             isActive: this.isGameActive,
             score: this.scoreDisplay.getScore(),
-            editMode: this.editMode.isActive
+            editMode: this.editMode.isActive,
+            placementMode: this.placementMode.isActive
         };
     }
 }

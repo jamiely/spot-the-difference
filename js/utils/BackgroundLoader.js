@@ -12,7 +12,9 @@ export class BackgroundLoader {
             const knownBackgrounds = await this.configLoader.getBackgrounds();
             const backgrounds = [];
             
-            for (const filename of knownBackgrounds) {
+            for (const backgroundData of knownBackgrounds) {
+                // Handle both old format (string) and new format (object)
+                const filename = typeof backgroundData === 'string' ? backgroundData : backgroundData.filename;
                 if (await this.imageExists(this.backgroundsPath + filename)) {
                     backgrounds.push(filename);
                 }

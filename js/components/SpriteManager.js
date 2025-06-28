@@ -1,4 +1,5 @@
 import { AssetConfigLoader } from '../utils/AssetConfigLoader.js';
+import { SPRITE_CONFIG } from '../config/SpriteConfig.js';
 
 export class SpriteManager {
     constructor(containerId) {
@@ -16,8 +17,12 @@ export class SpriteManager {
             
             console.log('Checking sprites with path:', this.spritesPath);
             const sprites = [];
-            for (const filename of knownSprites) {
+            
+            for (const spriteData of knownSprites) {
+                // Handle both old format (string) and new format (object)
+                const filename = typeof spriteData === 'string' ? spriteData : spriteData.filename;
                 const fullPath = this.spritesPath + filename;
+                
                 console.log('Checking sprite:', fullPath);
                 if (await this.imageExists(fullPath)) {
                     sprites.push(filename);
@@ -54,11 +59,24 @@ export class SpriteManager {
         return shuffled.slice(0, Math.min(count, this.loadedSprites.length));
     }
 
-    createSpriteElement(spriteSrc, boundingBoxes = [], specificBoxIndex = null) {
+    async createSpriteElement(spriteSrc, boundingBoxes = [], specificBoxIndex = null) {
         const sprite = document.createElement('img');
         sprite.src = this.spritesPath + spriteSrc;
         sprite.className = 'game-sprite';
         sprite.alt = 'Game sprite';
+        
+        // Get sprite dimensions and apply proper sizing
+        const spriteInfo = await this.configLoader.getSpriteInfo(spriteSrc);
+        console.log(`Sprite ${spriteSrc}: dimensions ${spriteInfo?.width}x${spriteInfo?.height}`);
+        const cssSize = SPRITE_CONFIG.getCSSSize(
+            spriteInfo?.width, 
+            spriteInfo?.height
+        );
+        console.log(`Sprite ${spriteSrc}: CSS size ${cssSize.width} x ${cssSize.height}`);
+        
+        // Apply dimensions as inline styles
+        sprite.style.width = cssSize.width;
+        sprite.style.height = cssSize.height;
         
         // Position sprites relative to the background image
         const backgroundImg = document.getElementById('background-image');
@@ -93,7 +111,9 @@ export class SpriteManager {
         const relativeLeft = bgRect.left - containerRect.left;
         const relativeTop = bgRect.top - containerRect.top;
         
-        const spriteSize = 80; // sprite width/height from CSS
+        // Get actual sprite dimensions from the element styles
+        const spriteWidth = parseInt(sprite.style.width) || SPRITE_CONFIG.TARGET_SIZE_PX;
+        const spriteHeight = parseInt(sprite.style.height) || SPRITE_CONFIG.TARGET_SIZE_PX;
         const maxAttempts = 50; // Maximum attempts to find non-colliding position
         
         let position = null;
@@ -110,7 +130,8 @@ export class SpriteManager {
                 relativeTop + selectedBox.y,
                 selectedBox.width,
                 selectedBox.height,
-                spriteSize,
+                spriteWidth,
+                spriteHeight,
                 maxAttempts
             );
             
@@ -122,7 +143,8 @@ export class SpriteManager {
                 relativeTop,
                 bgRect.width,
                 bgRect.height,
-                spriteSize,
+                spriteWidth,
+                spriteHeight,
                 maxAttempts
             );
             
@@ -137,21 +159,21 @@ export class SpriteManager {
         this.spritePositions.push({
             x: position.x,
             y: position.y,
-            width: spriteSize,
-            height: spriteSize
+            width: spriteWidth,
+            height: spriteHeight
         });
     }
     
-    findNonCollidingPosition(areaX, areaY, areaWidth, areaHeight, spriteSize, maxAttempts) {
-        const availableWidth = Math.max(1, areaWidth - spriteSize);
-        const availableHeight = Math.max(1, areaHeight - spriteSize);
+    findNonCollidingPosition(areaX, areaY, areaWidth, areaHeight, spriteWidth, spriteHeight, maxAttempts) {
+        const availableWidth = Math.max(1, areaWidth - spriteWidth);
+        const availableHeight = Math.max(1, areaHeight - spriteHeight);
         
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
             const x = areaX + Math.floor(Math.random() * availableWidth);
             const y = areaY + Math.floor(Math.random() * availableHeight);
             
             // Check if this position collides with any existing sprites
-            if (!this.hasCollision(x, y, spriteSize, spriteSize)) {
+            if (!this.hasCollision(x, y, spriteWidth, spriteHeight)) {
                 return { x, y, attempts: attempt + 1 };
             }
         }
@@ -180,64 +202,67 @@ export class SpriteManager {
         return false; // No collision
     }
 
-    displayRandomSprites(count = 10) {
+    async displayRandomSprites(count = 10) {
         this.clearSprites();
         
         const randomSprites = this.getRandomSprites(count);
         
-        randomSprites.forEach(spriteSrc => {
-            const spriteElement = this.createSpriteElement(spriteSrc);
+        for (const spriteSrc of randomSprites) {
+            const spriteElement = await this.createSpriteElement(spriteSrc);
             this.container.appendChild(spriteElement);
             this.activeSprites.push(spriteElement);
-        });
+        }
         
         return this.activeSprites.length;
     }
 
-    displayAllSprites(boundingBoxes = [], spriteCount = 50) {
+    async displayAllSprites(boundingBoxes = [], spriteCount = 50) {
         this.clearSprites();
         
         // Randomly select the specified number of sprites from all available sprites
         const randomSprites = this.getRandomSprites(spriteCount);
         
         // Add a small delay to ensure background image is properly rendered
-        setTimeout(() => {
-            if (boundingBoxes.length > 0) {
-                // Calculate capacity-based distribution
-                const distribution = this.calculateSpriteDistribution(boundingBoxes, randomSprites.length);
-                let spriteIndex = 0;
-                
-                distribution.forEach((count, boxIndex) => {
-                    for (let i = 0; i < count; i++) {
-                        if (spriteIndex >= randomSprites.length) break;
-                        
-                        const currentSpriteIndex = spriteIndex; // Capture the current value
-                        const currentSpriteSrc = randomSprites[currentSpriteIndex];
-                        
-                        setTimeout(() => {
-                            const spriteElement = this.createSpriteElement(
-                                currentSpriteSrc, 
-                                boundingBoxes, 
-                                boxIndex
-                            );
-                            this.container.appendChild(spriteElement);
-                            this.activeSprites.push(spriteElement);
-                        }, currentSpriteIndex * 10); // Small delay between each sprite
-                        
-                        spriteIndex++;
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        if (boundingBoxes.length > 0) {
+            // Calculate capacity-based distribution
+            const distribution = this.calculateSpriteDistribution(boundingBoxes, randomSprites.length);
+            let spriteIndex = 0;
+            
+            for (const [boxIndex, count] of distribution.entries()) {
+                for (let i = 0; i < count; i++) {
+                    if (spriteIndex >= randomSprites.length) break;
+                    
+                    const currentSpriteSrc = randomSprites[spriteIndex];
+                    
+                    const spriteElement = await this.createSpriteElement(
+                        currentSpriteSrc, 
+                        boundingBoxes, 
+                        boxIndex
+                    );
+                    this.container.appendChild(spriteElement);
+                    this.activeSprites.push(spriteElement);
+                    
+                    spriteIndex++;
+                    
+                    // Small delay between each sprite (optional)
+                    if (spriteIndex < randomSprites.length) {
+                        await new Promise(resolve => setTimeout(resolve, 10));
                     }
-                });
-            } else {
-                // No bounding boxes, use full background with random selection
-                randomSprites.forEach((spriteSrc, index) => {
-                    setTimeout(() => {
-                        const spriteElement = this.createSpriteElement(spriteSrc, boundingBoxes);
-                        this.container.appendChild(spriteElement);
-                        this.activeSprites.push(spriteElement);
-                    }, index * 10); // Small delay between each sprite
-                });
+                }
             }
-        }, 100);
+        } else {
+            // No bounding boxes, use full background with random selection
+            for (const spriteSrc of randomSprites) {
+                const spriteElement = await this.createSpriteElement(spriteSrc, boundingBoxes);
+                this.container.appendChild(spriteElement);
+                this.activeSprites.push(spriteElement);
+                
+                // Small delay between each sprite (optional)
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+        }
         
         return randomSprites.length;
     }
@@ -291,6 +316,10 @@ export class SpriteManager {
         });
         this.activeSprites = [];
         this.spritePositions = []; // Clear position tracking
+    }
+    
+    isPlacementModeActive() {
+        return document.body.classList.contains('placement-mode');
     }
 
     getSpriteCount() {

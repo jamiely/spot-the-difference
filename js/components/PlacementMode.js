@@ -1,3 +1,5 @@
+import { SPRITE_CONFIG } from '../config/SpriteConfig.js';
+
 export class PlacementMode {
     constructor() {
         this.isActive = false;
@@ -284,8 +286,10 @@ export class PlacementMode {
         indicator.style.position = 'absolute';
         indicator.style.left = sprite.style.left;
         indicator.style.top = sprite.style.top;
-        indicator.style.width = '80px'; // Match sprite size
-        indicator.style.height = '80px';
+        // Get sprite dimensions from the sprite element itself
+        const spriteRect = sprite.getBoundingClientRect();
+        indicator.style.width = spriteRect.width + 'px';
+        indicator.style.height = spriteRect.height + 'px';
         indicator.style.pointerEvents = 'none';
         indicator.style.zIndex = '999'; // Just below dragging z-index
         
@@ -522,13 +526,19 @@ export class PlacementMode {
             const backgroundX = containerX - relativeX;
             const backgroundY = containerY - relativeY;
             
+            // Calculate actual sprite size based on container
+            const actualSpriteSize = SPRITE_CONFIG.getSizeInPixels(
+                containerRect.width, 
+                containerRect.height
+            );
+            
             return {
                 id: `sprite_${index}`,
                 src: sprite.src.split('/').pop(), // Get filename only
                 x: Math.round(backgroundX),
                 y: Math.round(backgroundY),
-                width: 80, // Current sprite size
-                height: 80
+                width: actualSpriteSize,
+                height: actualSpriteSize
             };
         });
         
