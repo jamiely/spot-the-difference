@@ -67,7 +67,7 @@ export class SpriteManager {
         return shuffled.slice(0, Math.min(count, this.loadedSprites.length));
     }
 
-    createSpriteElement(spriteSrc) {
+    createSpriteElement(spriteSrc, boundingBoxes = [], specificBoxIndex = null) {
         const sprite = document.createElement('img');
         sprite.src = this.spritesPath + spriteSrc;
         sprite.className = 'game-sprite';
@@ -78,10 +78,10 @@ export class SpriteManager {
         if (backgroundImg && backgroundImg.style.display !== 'none') {
             // Wait for background image to load and get its actual dimensions
             if (backgroundImg.complete) {
-                this.positionSpriteOnBackground(sprite, backgroundImg);
+                this.positionSpriteOnBackground(sprite, backgroundImg, boundingBoxes, specificBoxIndex);
             } else {
                 backgroundImg.onload = () => {
-                    this.positionSpriteOnBackground(sprite, backgroundImg);
+                    this.positionSpriteOnBackground(sprite, backgroundImg, boundingBoxes, specificBoxIndex);
                 };
             }
         } else {
@@ -97,7 +97,7 @@ export class SpriteManager {
         return sprite;
     }
 
-    positionSpriteOnBackground(sprite, backgroundImg) {
+    positionSpriteOnBackground(sprite, backgroundImg, boundingBoxes = [], specificBoxIndex = null) {
         // Get the actual rendered dimensions and position of the background image
         const bgRect = backgroundImg.getBoundingClientRect();
         const containerRect = this.container.getBoundingClientRect();
@@ -106,19 +106,41 @@ export class SpriteManager {
         const relativeLeft = bgRect.left - containerRect.left;
         const relativeTop = bgRect.top - containerRect.top;
         
-        // Use the full background image dimensions for positioning
         const spriteSize = 40; // sprite width/height from CSS
-        const maxX = Math.max(0, bgRect.width - spriteSize);
-        const maxY = Math.max(0, bgRect.height - spriteSize);
         
-        // Generate truly random positions with better distribution
-        const randomX = Math.floor(Math.random() * (maxX + 1));
-        const randomY = Math.floor(Math.random() * (maxY + 1));
+        let randomX, randomY;
         
-        sprite.style.left = (relativeLeft + randomX) + 'px';
-        sprite.style.top = (relativeTop + randomY) + 'px';
-        
-        console.log(`Positioned sprite at: ${relativeLeft + randomX}, ${relativeTop + randomY} (bg: ${bgRect.width}x${bgRect.height})`);
+        if (boundingBoxes.length > 0) {
+            // Use specific bounding box or pick one randomly
+            const selectedBox = specificBoxIndex !== null ? 
+                boundingBoxes[specificBoxIndex] : 
+                boundingBoxes[Math.floor(Math.random() * boundingBoxes.length)];
+            
+            // Ensure we have valid dimensions for positioning
+            const availableWidth = Math.max(1, selectedBox.width - spriteSize);
+            const availableHeight = Math.max(1, selectedBox.height - spriteSize);
+            
+            // Bounding box coordinates are relative to background image, so add the background offset
+            const boxX = relativeLeft + selectedBox.x + Math.floor(Math.random() * availableWidth);
+            const boxY = relativeTop + selectedBox.y + Math.floor(Math.random() * availableHeight);
+            
+            sprite.style.left = boxX + 'px';
+            sprite.style.top = boxY + 'px';
+            
+            console.log(`Positioned sprite in box ${specificBoxIndex || 'random'} at: ${boxX}, ${boxY} (box relative to bg: ${selectedBox.x}, ${selectedBox.y}, ${selectedBox.width}x${selectedBox.height})`);
+        } else {
+            // Use the full background image dimensions for positioning
+            const maxX = Math.max(0, bgRect.width - spriteSize);
+            const maxY = Math.max(0, bgRect.height - spriteSize);
+            
+            randomX = Math.floor(Math.random() * (maxX + 1));
+            randomY = Math.floor(Math.random() * (maxY + 1));
+            
+            sprite.style.left = (relativeLeft + randomX) + 'px';
+            sprite.style.top = (relativeTop + randomY) + 'px';
+            
+            console.log(`Positioned sprite on full background at: ${relativeLeft + randomX}, ${relativeTop + randomY} (bg: ${bgRect.width}x${bgRect.height})`);
+        }
     }
 
     displayRandomSprites(count = 10) {
@@ -135,18 +157,31 @@ export class SpriteManager {
         return this.activeSprites.length;
     }
 
-    displayAllSprites() {
+    displayAllSprites(boundingBoxes = []) {
         this.clearSprites();
         
         // Add a small delay to ensure background image is properly rendered
         setTimeout(() => {
-            this.loadedSprites.forEach((spriteSrc, index) => {
-                setTimeout(() => {
-                    const spriteElement = this.createSpriteElement(spriteSrc);
-                    this.container.appendChild(spriteElement);
-                    this.activeSprites.push(spriteElement);
-                }, index * 10); // Small delay between each sprite
-            });
+            if (boundingBoxes.length > 0) {
+                // Distribute sprites across all bounding boxes
+                this.loadedSprites.forEach((spriteSrc, index) => {
+                    setTimeout(() => {
+                        const boxIndex = index % boundingBoxes.length; // Cycle through boxes
+                        const spriteElement = this.createSpriteElement(spriteSrc, boundingBoxes, boxIndex);
+                        this.container.appendChild(spriteElement);
+                        this.activeSprites.push(spriteElement);
+                    }, index * 10); // Small delay between each sprite
+                });
+            } else {
+                // No bounding boxes, use full background
+                this.loadedSprites.forEach((spriteSrc, index) => {
+                    setTimeout(() => {
+                        const spriteElement = this.createSpriteElement(spriteSrc, boundingBoxes);
+                        this.container.appendChild(spriteElement);
+                        this.activeSprites.push(spriteElement);
+                    }, index * 10); // Small delay between each sprite
+                });
+            }
         }, 100);
         
         return this.loadedSprites.length;

@@ -211,3 +211,116 @@ button:disabled {
         height: 30px;
     }
 }
+
+/* Edit Mode Styles */
+.edit-mode {
+    cursor: crosshair;
+}
+
+.edit-mode #background-image {
+    cursor: crosshair;
+}
+
+.bounding-box {
+    position: absolute;
+    border: 2px solid #e53e3e;
+    background: rgba(229, 62, 62, 0.1);
+    z-index: 15;
+    pointer-events: none;
+}
+
+.bounding-box.current-box {
+    border: 2px dashed #e53e3e;
+    background: rgba(229, 62, 62, 0.2);
+}
+
+.bounding-box.finalized-box {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.bounding-box.finalized-box:hover {
+    background: rgba(229, 62, 62, 0.3);
+    border-color: #c53030;
+}
+
+#edit-panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 300px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: none;
+}
+
+#edit-panel h3 {
+    margin: 0 0 0.5rem 0;
+    color: #2d3748;
+    font-size: 1.1rem;
+}
+
+#edit-panel p {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: #4a5568;
+}
+
+#edit-panel label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+#bounding-boxes-json {
+    width: 100%;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    padding: 0.5rem;
+    resize: vertical;
+    margin-bottom: 1rem;
+}
+
+.edit-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+#copy-json, #load-json {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    flex: 1;
+    min-width: 80px;
+}
+
+#copy-json:hover, #load-json:hover {
+    background: #5a67d8;
+}
+
+#clear-boxes {
+    background: #e53e3e;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    flex: 1;
+}
+
+#clear-boxes:hover {
+    background: #c53030;
+}

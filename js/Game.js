@@ -1,11 +1,13 @@
 import { ScoreDisplay } from './components/ScoreDisplay.js';
 import { SpriteManager } from './components/SpriteManager.js';
+import { EditMode } from './components/EditMode.js';
 import { BackgroundLoader } from './utils/BackgroundLoader.js';
 
 export class Game {
     constructor() {
         this.scoreDisplay = new ScoreDisplay('score-count');
         this.spriteManager = new SpriteManager('game-container');
+        this.editMode = new EditMode();
         this.backgroundLoader = new BackgroundLoader();
         this.isGameActive = false;
         
@@ -22,6 +24,9 @@ export class Game {
             this.resetGame();
         });
         
+        document.addEventListener('editModeToggled', (e) => {
+            this.handleEditModeToggle(e.detail);
+        });
     }
     
     async initializeAssets() {
@@ -58,7 +63,8 @@ export class Game {
             console.log('No background available, available backgrounds:', this.backgroundLoader.loadedBackgrounds);
         }
         
-        const spritesDisplayed = this.spriteManager.displayAllSprites();
+        const boundingBoxes = this.editMode.getBoundingBoxes();
+        const spritesDisplayed = this.spriteManager.displayAllSprites(boundingBoxes);
         console.log('Sprites displayed:', spritesDisplayed, 'Available sprites:', this.spriteManager.getLoadedSpritesCount());
     }
 
@@ -100,10 +106,23 @@ export class Game {
         document.dispatchEvent(event);
     }
     
+    handleEditModeToggle(detail) {
+        console.log('Edit mode toggled:', detail.isActive);
+        if (detail.isActive) {
+            this.spriteManager.clearSprites();
+        } else {
+            if (this.isGameActive) {
+                const boundingBoxes = this.editMode.getBoundingBoxes();
+                this.spriteManager.displayAllSprites(boundingBoxes);
+            }
+        }
+    }
+    
     getGameState() {
         return {
             isActive: this.isGameActive,
-            score: this.scoreDisplay.getScore()
+            score: this.scoreDisplay.getScore(),
+            editMode: this.editMode.isActive
         };
     }
 }

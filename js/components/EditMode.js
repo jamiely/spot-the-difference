@@ -1,0 +1,403 @@
+export class EditMode {
+    constructor() {
+        this.isActive = false;
+        this.boundingBoxes = [];
+        this.currentBox = null;
+        this.isDrawing = false;
+        this.startPoint = { x: 0, y: 0 };
+        
+        this.setupEventListeners();
+    }
+    
+    setupEventListeners() {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'E' || e.key === 'e') {
+                this.toggleEditMode();
+            }
+        });
+    }
+    
+    toggleEditMode() {
+        this.isActive = !this.isActive;
+        
+        if (this.isActive) {
+            this.enterEditMode();
+        } else {
+            this.exitEditMode();
+        }
+        
+        this.dispatchEvent('editModeToggled', { isActive: this.isActive });
+    }
+    
+    enterEditMode() {
+        console.log('Entering edit mode');
+        this.addBackgroundListeners();
+        this.showEditInterface();
+        document.body.classList.add('edit-mode');
+    }
+    
+    exitEditMode() {
+        console.log('Exiting edit mode');
+        this.removeBackgroundListeners();
+        this.hideEditInterface();
+        document.body.classList.remove('edit-mode');
+        this.clearCurrentBox();
+    }
+    
+    addBackgroundListeners() {
+        const backgroundImg = document.getElementById('background-image');
+        if (backgroundImg) {
+            backgroundImg.addEventListener('mousedown', this.handleMouseDown.bind(this));
+            backgroundImg.addEventListener('mousemove', this.handleMouseMove.bind(this));
+            backgroundImg.addEventListener('mouseup', this.handleMouseUp.bind(this));
+            backgroundImg.style.cursor = 'crosshair';
+        }
+    }
+    
+    removeBackgroundListeners() {
+        const backgroundImg = document.getElementById('background-image');
+        if (backgroundImg) {
+            backgroundImg.removeEventListener('mousedown', this.handleMouseDown.bind(this));
+            backgroundImg.removeEventListener('mousemove', this.handleMouseMove.bind(this));
+            backgroundImg.removeEventListener('mouseup', this.handleMouseUp.bind(this));
+            backgroundImg.style.cursor = 'default';
+        }
+    }
+    
+    handleMouseDown(e) {
+        if (!this.isActive) return;
+        
+        e.preventDefault();
+        this.isDrawing = true;
+        
+        const backgroundImg = e.target;
+        const imgRect = backgroundImg.getBoundingClientRect();
+        
+        // Store coordinates relative to the background image
+        this.startPoint = {
+            x: e.clientX - imgRect.left,
+            y: e.clientY - imgRect.top
+        };
+        
+        // For visual display, we still need container-relative coordinates
+        const containerRect = backgroundImg.parentElement.getBoundingClientRect();
+        const relativeX = imgRect.left - containerRect.left;
+        const relativeY = imgRect.top - containerRect.top;
+        
+        this.createCurrentBox(
+            relativeX + this.startPoint.x, 
+            relativeY + this.startPoint.y, 
+            0, 0
+        );
+    }
+    
+    handleMouseMove(e) {
+        if (!this.isActive || !this.isDrawing) return;
+        
+        e.preventDefault();
+        const backgroundImg = e.target;
+        const imgRect = backgroundImg.getBoundingClientRect();
+        
+        // Current point relative to background image
+        const currentPoint = {
+            x: e.clientX - imgRect.left,
+            y: e.clientY - imgRect.top
+        };
+        
+        // Calculate dimensions relative to background image
+        const width = Math.abs(currentPoint.x - this.startPoint.x);
+        const height = Math.abs(currentPoint.y - this.startPoint.y);
+        const left = Math.min(this.startPoint.x, currentPoint.x);
+        const top = Math.min(this.startPoint.y, currentPoint.y);
+        
+        // For visual display, convert to container-relative coordinates
+        const containerRect = backgroundImg.parentElement.getBoundingClientRect();
+        const relativeX = imgRect.left - containerRect.left;
+        const relativeY = imgRect.top - containerRect.top;
+        
+        this.updateCurrentBox(
+            relativeX + left, 
+            relativeY + top, 
+            width, 
+            height
+        );
+    }
+    
+    handleMouseUp(e) {
+        if (!this.isActive || !this.isDrawing) return;
+        
+        e.preventDefault();
+        this.isDrawing = false;
+        
+        if (this.currentBox && this.currentBox.width > 10 && this.currentBox.height > 10) {
+            this.finalizeBoundingBox();
+        } else {
+            this.clearCurrentBox();
+        }
+    }
+    
+    createCurrentBox(x, y, width, height) {
+        this.clearCurrentBox();
+        
+        const box = document.createElement('div');
+        box.className = 'bounding-box current-box';
+        box.style.left = x + 'px';
+        box.style.top = y + 'px';
+        box.style.width = width + 'px';
+        box.style.height = height + 'px';
+        
+        const backgroundImg = document.getElementById('background-image');
+        backgroundImg.parentElement.appendChild(box);
+        
+        this.currentBox = { element: box, displayX: x, displayY: y, width, height };
+    }
+    
+    updateCurrentBox(x, y, width, height) {
+        if (this.currentBox) {
+            this.currentBox.element.style.left = x + 'px';
+            this.currentBox.element.style.top = y + 'px';
+            this.currentBox.element.style.width = width + 'px';
+            this.currentBox.element.style.height = height + 'px';
+            
+            this.currentBox.displayX = x;
+            this.currentBox.displayY = y;
+            this.currentBox.width = width;
+            this.currentBox.height = height;
+        }
+    }
+    
+    finalizeBoundingBox() {
+        if (this.currentBox) {
+            // Convert display coordinates back to background-image-relative coordinates
+            const backgroundImg = document.getElementById('background-image');
+            const imgRect = backgroundImg.getBoundingClientRect();
+            const containerRect = backgroundImg.parentElement.getBoundingClientRect();
+            const relativeX = imgRect.left - containerRect.left;
+            const relativeY = imgRect.top - containerRect.top;
+            
+            const boundingBox = {
+                id: Date.now(),
+                x: this.currentBox.displayX - relativeX,
+                y: this.currentBox.displayY - relativeY,
+                width: this.currentBox.width,
+                height: this.currentBox.height
+            };
+            
+            this.boundingBoxes.push(boundingBox);
+            this.currentBox.element.classList.remove('current-box');
+            this.currentBox.element.classList.add('finalized-box');
+            this.currentBox.element.addEventListener('dblclick', () => {
+                this.removeBoundingBox(boundingBox.id);
+            });
+            
+            this.currentBox = null;
+            this.updateJsonExport();
+            
+            console.log('Added bounding box:', boundingBox);
+        }
+    }
+    
+    clearCurrentBox() {
+        if (this.currentBox) {
+            this.currentBox.element.remove();
+            this.currentBox = null;
+        }
+    }
+    
+    removeBoundingBox(id) {
+        this.boundingBoxes = this.boundingBoxes.filter(box => box.id !== id);
+        
+        const elements = document.querySelectorAll('.bounding-box');
+        elements.forEach(el => {
+            if (el.dataset.id === String(id)) {
+                el.remove();
+            }
+        });
+        
+        this.updateJsonExport();
+    }
+    
+    showEditInterface() {
+        let editPanel = document.getElementById('edit-panel');
+        if (!editPanel) {
+            editPanel = document.createElement('div');
+            editPanel.id = 'edit-panel';
+            editPanel.innerHTML = `
+                <h3>Edit Mode (Press E to exit)</h3>
+                <p>Drag on the background to create bounding boxes. Double-click boxes to remove them.</p>
+                <label for="bounding-boxes-json">Bounding Boxes JSON:</label>
+                <textarea id="bounding-boxes-json" rows="10"></textarea>
+                <div class="edit-buttons">
+                    <button id="copy-json">Copy JSON</button>
+                    <button id="load-json">Load JSON</button>
+                    <button id="clear-boxes">Clear All Boxes</button>
+                </div>
+            `;
+            document.getElementById('game-container').appendChild(editPanel);
+            
+            document.getElementById('copy-json').addEventListener('click', () => {
+                this.copyJsonToClipboard();
+            });
+            
+            document.getElementById('load-json').addEventListener('click', () => {
+                this.loadJsonFromTextarea();
+            });
+            
+            document.getElementById('clear-boxes').addEventListener('click', () => {
+                this.clearAllBoxes();
+            });
+        }
+        editPanel.style.display = 'block';
+        this.updateJsonExport();
+    }
+    
+    hideEditInterface() {
+        const editPanel = document.getElementById('edit-panel');
+        if (editPanel) {
+            editPanel.style.display = 'none';
+        }
+    }
+    
+    clearAllBoxes() {
+        this.boundingBoxes = [];
+        document.querySelectorAll('.bounding-box').forEach(el => el.remove());
+        this.updateJsonExport();
+    }
+    
+    updateJsonExport() {
+        const textarea = document.getElementById('bounding-boxes-json');
+        if (textarea) {
+            textarea.value = JSON.stringify(this.boundingBoxes, null, 2);
+        }
+    }
+    
+    getBoundingBoxes() {
+        return this.boundingBoxes;
+    }
+    
+    setBoundingBoxes(boxes) {
+        this.clearAllBoxes();
+        this.boundingBoxes = boxes || [];
+        this.updateJsonExport();
+    }
+    
+    async copyJsonToClipboard() {
+        const textarea = document.getElementById('bounding-boxes-json');
+        if (textarea && textarea.value) {
+            try {
+                await navigator.clipboard.writeText(textarea.value);
+                this.showCopyFeedback('JSON copied to clipboard!');
+            } catch (err) {
+                // Fallback for browsers that don't support clipboard API
+                textarea.select();
+                document.execCommand('copy');
+                this.showCopyFeedback('JSON copied to clipboard!');
+            }
+        } else {
+            this.showCopyFeedback('No bounding boxes to copy');
+        }
+    }
+    
+    loadJsonFromTextarea() {
+        const textarea = document.getElementById('bounding-boxes-json');
+        if (!textarea || !textarea.value.trim()) {
+            this.showLoadFeedback('No JSON to load', 'error');
+            return;
+        }
+        
+        try {
+            const jsonData = JSON.parse(textarea.value);
+            
+            if (!Array.isArray(jsonData)) {
+                throw new Error('JSON must be an array');
+            }
+            
+            // Validate each bounding box has required properties
+            for (let i = 0; i < jsonData.length; i++) {
+                const box = jsonData[i];
+                if (typeof box.x !== 'number' || typeof box.y !== 'number' || 
+                    typeof box.width !== 'number' || typeof box.height !== 'number') {
+                    throw new Error(`Bounding box ${i} missing required properties (x, y, width, height)`);
+                }
+            }
+            
+            // Clear existing boxes and load new ones
+            this.clearAllBoxes();
+            this.boundingBoxes = jsonData.map(box => ({
+                ...box,
+                id: box.id || Date.now() + Math.random() // Ensure each box has an ID
+            }));
+            
+            // Create visual representations of the loaded boxes
+            this.createVisualBoxes();
+            this.updateJsonExport();
+            
+            this.showLoadFeedback(`Loaded ${jsonData.length} bounding boxes`, 'success');
+            
+        } catch (error) {
+            console.error('Failed to load JSON:', error);
+            this.showLoadFeedback(`Invalid JSON: ${error.message}`, 'error');
+        }
+    }
+    
+    createVisualBoxes() {
+        // Create visual elements for all loaded bounding boxes
+        const backgroundImg = document.getElementById('background-image');
+        if (!backgroundImg) return;
+        
+        const imgRect = backgroundImg.getBoundingClientRect();
+        const containerRect = backgroundImg.parentElement.getBoundingClientRect();
+        const relativeX = imgRect.left - containerRect.left;
+        const relativeY = imgRect.top - containerRect.top;
+        
+        this.boundingBoxes.forEach(boundingBox => {
+            const box = document.createElement('div');
+            box.className = 'bounding-box finalized-box';
+            box.dataset.id = boundingBox.id;
+            
+            // Convert from background-relative to container-relative coordinates for display
+            box.style.left = (relativeX + boundingBox.x) + 'px';
+            box.style.top = (relativeY + boundingBox.y) + 'px';
+            box.style.width = boundingBox.width + 'px';
+            box.style.height = boundingBox.height + 'px';
+            
+            box.addEventListener('dblclick', () => {
+                this.removeBoundingBox(boundingBox.id);
+            });
+            
+            backgroundImg.parentElement.appendChild(box);
+        });
+    }
+    
+    showCopyFeedback(message) {
+        const button = document.getElementById('copy-json');
+        const originalText = button.textContent;
+        
+        button.textContent = message;
+        button.style.background = '#38a169';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '';
+        }, 2000);
+    }
+    
+    showLoadFeedback(message, type = 'success') {
+        const button = document.getElementById('load-json');
+        const originalText = button.textContent;
+        const color = type === 'success' ? '#38a169' : '#e53e3e';
+        
+        button.textContent = message;
+        button.style.background = color;
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '';
+        }, 3000);
+    }
+    
+    dispatchEvent(eventName, detail) {
+        const event = new CustomEvent(eventName, { detail });
+        document.dispatchEvent(event);
+    }
+}
