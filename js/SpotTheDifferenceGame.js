@@ -15,7 +15,42 @@ export class SpotTheDifferenceGame extends Game {
         this.currentTemplate = null;
         this.isSpotTheeDifferenceMode = true;
         
+        // Seeded random number generation
+        this.seed = this.getSeedFromURL();
+        this.rng = this.createSeededRNG(this.seed);
+        
+        console.log(`Using seed: ${this.seed}`);
+        
         this.setupSpotTheDifferenceEventListeners();
+    }
+    
+    getSeedFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const seedParam = urlParams.get('seed');
+        if (seedParam) {
+            const parsedSeed = parseInt(seedParam, 10);
+            if (!isNaN(parsedSeed)) {
+                return parsedSeed;
+            }
+        }
+        // Generate a random seed if none provided
+        return Math.floor(Math.random() * 1000000);
+    }
+    
+    createSeededRNG(seed) {
+        // Linear Congruential Generator for reproducible randomness
+        let currentSeed = seed;
+        const rng = {
+            next: () => {
+                currentSeed = (currentSeed * 1664525 + 1013904223) % (2 ** 32);
+                return currentSeed / (2 ** 32);
+            }
+        };
+        // Helper method to get random integer in range
+        rng.nextInt = (min, max) => {
+            return Math.floor(rng.next() * (max - min + 1)) + min;
+        };
+        return rng;
     }
     
     setupSpotTheDifferenceEventListeners() {
@@ -170,7 +205,9 @@ export class SpotTheDifferenceGame extends Game {
         this.foundDifferences = [];
         
         const rightSprites = this.rightSpriteManager.activeSprites;
-        const numDifferences = Math.min(5, Math.floor(rightSprites.length * 0.2)); // Remove up to 20% of sprites, max 5
+        const maxDifferences = Math.min(7, Math.floor(rightSprites.length * 0.2));
+        const minDifferences = Math.min(3, maxDifferences);
+        const numDifferences = this.rng.nextInt(minDifferences, maxDifferences);
         
         // Randomly select sprites to remove as differences
         const spritesToRemove = this.shuffleArray([...rightSprites]).slice(0, numDifferences);
@@ -202,7 +239,7 @@ export class SpotTheDifferenceGame extends Game {
     
     shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
+            const j = Math.floor(this.rng.next() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
