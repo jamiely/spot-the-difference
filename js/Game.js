@@ -128,7 +128,8 @@ export class Game {
         const backgroundImg = document.getElementById('background-image');
         backgroundImg.src = img.src;
         backgroundImg.style.display = 'block';
-        backgroundImg.style.width = '50%';
+        backgroundImg.style.width = '100%';
+        backgroundImg.style.maxWidth = '400px';
         backgroundImg.style.height = 'auto';
         backgroundImg.style.borderRadius = '8px';
     }
