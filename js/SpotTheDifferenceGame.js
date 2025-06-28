@@ -212,11 +212,23 @@ export class SpotTheDifferenceGame extends Game {
         if (!this.isGameActive) return;
         
         const board = event.currentTarget;
-        const rect = board.getBoundingClientRect();
-        const clickX = event.clientX - rect.left;
-        const clickY = event.clientY - rect.top;
+        const backgroundImg = document.getElementById(`background-image-${side}`);
         
-        console.log(`Click on ${side} side at: ${clickX}, ${clickY}`);
+        // Get click coordinates relative to the board
+        const boardRect = board.getBoundingClientRect();
+        const clickX = event.clientX - boardRect.left;
+        const clickY = event.clientY - boardRect.top;
+        
+        // Get background image position relative to the board
+        const bgRect = backgroundImg.getBoundingClientRect();
+        const bgOffsetX = bgRect.left - boardRect.left;
+        const bgOffsetY = bgRect.top - boardRect.top;
+        
+        // Convert click coordinates to background-relative coordinates
+        const bgClickX = clickX - bgOffsetX;
+        const bgClickY = clickY - bgOffsetY;
+        
+        console.log(`Click on ${side} side at board: ${clickX}, ${clickY}, background: ${bgClickX}, ${bgClickY}`);
         
         // Check if click is near any difference
         const threshold = 30; // 30px threshold as specified
@@ -224,11 +236,13 @@ export class SpotTheDifferenceGame extends Game {
         for (const difference of this.differences) {
             if (this.foundDifferences.includes(difference.id)) continue;
             
-            // Calculate distance from click to difference center
+            // Calculate distance from click to difference center (both in background coordinates)
             const distance = Math.sqrt(
-                Math.pow(clickX - difference.centerX, 2) + 
-                Math.pow(clickY - difference.centerY, 2)
+                Math.pow(bgClickX - difference.centerX, 2) + 
+                Math.pow(bgClickY - difference.centerY, 2)
             );
+            
+            console.log(`Checking difference ${difference.id} at (${difference.centerX}, ${difference.centerY}), distance: ${distance.toFixed(1)}px`);
             
             if (distance <= threshold) {
                 this.markDifferenceFound(difference, side, clickX, clickY);
@@ -242,8 +256,9 @@ export class SpotTheDifferenceGame extends Game {
     markDifferenceFound(difference, side, clickX, clickY) {
         this.foundDifferences.push(difference.id);
         
-        // Create green checkmark marker at the center of the difference
-        this.createDifferenceMarker(difference.centerX, difference.centerY, side, '✓', '#28a745');
+        // Create green checkmark markers on both sides at the difference center
+        this.createDifferenceMarker(difference.centerX, difference.centerY, 'left', '✓', '#28a745');
+        this.createDifferenceMarker(difference.centerX, difference.centerY, 'right', '✓', '#28a745');
         
         // Update score
         this.scoreDisplay.incrementScore();
@@ -258,11 +273,23 @@ export class SpotTheDifferenceGame extends Game {
     
     createDifferenceMarker(x, y, side, symbol, color) {
         const board = document.getElementById(`game-board-${side}`);
+        const backgroundImg = document.getElementById(`background-image-${side}`);
+        
+        // Get background image position relative to the board
+        const boardRect = board.getBoundingClientRect();
+        const bgRect = backgroundImg.getBoundingClientRect();
+        const bgOffsetX = bgRect.left - boardRect.left;
+        const bgOffsetY = bgRect.top - boardRect.top;
+        
+        // Convert background coordinates to board coordinates
+        const markerX = bgOffsetX + x;
+        const markerY = bgOffsetY + y;
+        
         const marker = document.createElement('div');
         marker.className = 'difference-marker found';
         marker.style.position = 'absolute';
-        marker.style.left = `${x - 15}px`; // Center the 30px marker
-        marker.style.top = `${y - 15}px`;
+        marker.style.left = `${markerX - 15}px`; // Center the 30px marker
+        marker.style.top = `${markerY - 15}px`;
         marker.style.width = '30px';
         marker.style.height = '30px';
         marker.style.borderRadius = '50%';
