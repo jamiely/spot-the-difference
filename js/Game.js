@@ -231,11 +231,12 @@ export class Game {
                 const backgroundImg = document.getElementById('background-image');
                 if (backgroundImg) {
                     const bgRect = backgroundImg.getBoundingClientRect();
-                    const containerRect = backgroundImg.parentElement.getBoundingClientRect();
-                    const relativeX = bgRect.left - containerRect.left;
-                    const relativeY = bgRect.top - containerRect.top;
+                    // Get the actual container where sprites will be placed (game-container)
+                    const spriteContainerRect = this.spriteManager.container.getBoundingClientRect();
+                    const relativeX = bgRect.left - spriteContainerRect.left;
+                    const relativeY = bgRect.top - spriteContainerRect.top;
                     
-                    // Convert from background-relative to container-relative coordinates
+                    // Convert from background-relative to sprite-container-relative coordinates
                     const containerX = relativeX + x;
                     const containerY = relativeY + y;
                     
