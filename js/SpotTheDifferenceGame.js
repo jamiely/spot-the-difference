@@ -187,16 +187,10 @@ export class SpotTheDifferenceGame extends Game {
     positionSpriteOnSide(sprite, spriteData, side) {
         const backgroundImg = document.getElementById(`background-image-${side}`);
         if (backgroundImg) {
-            const bgRect = backgroundImg.getBoundingClientRect();
-            const containerRect = backgroundImg.parentElement.getBoundingClientRect();
-            const relativeX = bgRect.left - containerRect.left;
-            const relativeY = bgRect.top - containerRect.top;
-            
-            const containerX = relativeX + spriteData.x;
-            const containerY = relativeY + spriteData.y;
-            
-            sprite.style.left = containerX + 'px';
-            sprite.style.top = containerY + 'px';
+            // Position sprite relative to the background image's top-left corner
+            // The background images are already properly positioned within their containers
+            sprite.style.left = spriteData.x + 'px';
+            sprite.style.top = spriteData.y + 'px';
         }
     }
     
@@ -312,15 +306,9 @@ export class SpotTheDifferenceGame extends Game {
         const board = document.getElementById(`game-board-${side}`);
         const backgroundImg = document.getElementById(`background-image-${side}`);
         
-        // Get background image position relative to the board
-        const boardRect = board.getBoundingClientRect();
-        const bgRect = backgroundImg.getBoundingClientRect();
-        const bgOffsetX = bgRect.left - boardRect.left;
-        const bgOffsetY = bgRect.top - boardRect.top;
-        
-        // Convert background coordinates to board coordinates
-        const markerX = bgOffsetX + x;
-        const markerY = bgOffsetY + y;
+        // Position marker directly at background coordinates since sprites are positioned relative to background
+        const markerX = x;
+        const markerY = y;
         
         const marker = document.createElement('div');
         marker.className = 'difference-marker found';
