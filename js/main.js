@@ -1,7 +1,7 @@
-import { Game } from './Game.js';
+import { SpotTheDifferenceGame } from './SpotTheDifferenceGame.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const game = new Game();
+    const game = new SpotTheDifferenceGame();
     
     document.addEventListener('gameStarted', () => {
         console.log('Game started!');

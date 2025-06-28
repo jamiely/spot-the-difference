@@ -13,7 +13,19 @@
     
     <main>
         <div id="game-container">
-            <div class="game-board">
+            <div class="game-boards">
+                <div class="game-board" id="game-board-left">
+                    <img id="background-image-left" class="background-image" alt="Game background left" style="display: none;">
+                    <div class="image-label">Left Side</div>
+                </div>
+                <div class="game-board" id="game-board-right">
+                    <img id="background-image-right" class="background-image" alt="Game background right" style="display: none;">
+                    <div class="image-label">Right Side</div>
+                </div>
+            </div>
+            
+            <!-- Legacy single board for backward compatibility -->
+            <div class="game-board" id="legacy-game-board" style="display: none;">
                 <img id="background-image" alt="Game background" style="display: none;">
             </div>
             
