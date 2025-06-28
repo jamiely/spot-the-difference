@@ -3,6 +3,7 @@ import { SpriteManager } from './components/SpriteManager.js';
 import { EditMode } from './components/EditMode.js';
 import { PlacementMode } from './components/PlacementMode.js';
 import { BackgroundLoader } from './utils/BackgroundLoader.js';
+import { TemplateManager } from './utils/TemplateManager.js';
 import { getBoundingBoxesForBackground, getSpriteCountForBackground } from './config/BoundingBoxConfig.js';
 
 export class Game {
@@ -12,6 +13,7 @@ export class Game {
         this.editMode = new EditMode();
         this.placementMode = new PlacementMode();
         this.backgroundLoader = new BackgroundLoader();
+        this.templateManager = new TemplateManager();
         this.isGameActive = false;
         this.currentBackgroundFilename = null;
         
@@ -39,6 +41,14 @@ export class Game {
         document.addEventListener('requestSpriteGeneration', (e) => {
             this.handleSpriteGenerationRequest(e.detail);
         });
+        
+        document.addEventListener('requestSpriteCreation', (e) => {
+            this.handleSpriteCreationRequest(e.detail);
+        });
+        
+        document.addEventListener('requestBackgroundChange', (e) => {
+            this.handleBackgroundChangeRequest(e.detail);
+        });
     }
     
     async initializeAssets() {
@@ -60,6 +70,21 @@ export class Game {
     }
 
     async loadBackgroundAndSprites() {
+        // Try to load template1 by default first
+        try {
+            await this.templateManager.loadAvailableTemplates();
+            const template1 = this.templateManager.getTemplateById('template1');
+            
+            if (template1) {
+                console.log('Loading default template1:', template1.name);
+                await this.loadTemplate(template1);
+                return;
+            }
+        } catch (error) {
+            console.warn('Could not load template1, falling back to random generation:', error);
+        }
+        
+        // Fallback to random background and sprites if template1 is not available
         const backgroundSrc = this.backgroundLoader.getRandomBackground();
         console.log('Attempting to load background:', backgroundSrc);
         
@@ -189,6 +214,154 @@ export class Game {
                     getSpriteCountForBackground(this.currentBackgroundFilename) : 50;
                 await this.spriteManager.displayAllSprites(boundingBoxes, spriteCount);
             }
+        }
+    }
+    
+    async handleSpriteCreationRequest(detail) {
+        console.log('Individual sprite creation requested', detail);
+        if (this.isGameActive) {
+            const { spriteSrc, x, y } = detail;
+            
+            try {
+                // Create the sprite element
+                const spriteElement = await this.spriteManager.createSpriteElement(spriteSrc);
+                
+                // Position it at the specified coordinates (background-relative)
+                const backgroundImg = document.getElementById('background-image');
+                if (backgroundImg) {
+                    const bgRect = backgroundImg.getBoundingClientRect();
+                    const containerRect = backgroundImg.parentElement.getBoundingClientRect();
+                    const relativeX = bgRect.left - containerRect.left;
+                    const relativeY = bgRect.top - containerRect.top;
+                    
+                    // Convert from background-relative to container-relative coordinates
+                    const containerX = relativeX + x;
+                    const containerY = relativeY + y;
+                    
+                    spriteElement.style.left = containerX + 'px';
+                    spriteElement.style.top = containerY + 'px';
+                }
+                
+                // Add to DOM and track it
+                this.spriteManager.container.appendChild(spriteElement);
+                this.spriteManager.activeSprites.push(spriteElement);
+                
+                // If placement mode is active, enable dragging for the new sprite
+                if (this.placementMode.isActive) {
+                    this.placementMode.refreshSpriteEventListeners();
+                }
+                
+                console.log(`Created sprite ${spriteSrc} at position ${x}, ${y}`);
+            } catch (error) {
+                console.error(`Failed to create sprite ${spriteSrc}:`, error);
+            }
+        }
+    }
+    
+    async handleBackgroundChangeRequest(detail) {
+        console.log('Background change requested', detail);
+        if (this.isGameActive) {
+            const { background } = detail;
+            
+            try {
+                // Load the new background image
+                const backgroundImg = await this.backgroundLoader.loadBackgroundImage(background);
+                console.log('New background loaded successfully:', backgroundImg.src);
+                this.setBackgroundImage(backgroundImg);
+                
+                // Update current background filename
+                this.currentBackgroundFilename = background;
+                
+                // Load predefined bounding boxes for this background if edit mode doesn't have custom ones
+                this.loadBackgroundBoundingBoxes();
+                
+                console.log(`Background changed to: ${background}`);
+            } catch (error) {
+                console.error(`Failed to change background to ${background}:`, error);
+            }
+        }
+    }
+    
+    async loadTemplate(template) {
+        console.log('Loading template:', template.name, 'with', template.sprites.length, 'sprites');
+        
+        try {
+            // Load the background image - construct full path
+            const backgroundPath = template.background.startsWith('./') ? template.background : `./backgrounds/${template.background}`;
+            const backgroundImg = await this.backgroundLoader.loadBackgroundImage(backgroundPath);
+            console.log('Template background loaded successfully:', backgroundImg.src);
+            
+            this.setBackgroundImage(backgroundImg);
+            
+            // Update current background filename
+            this.currentBackgroundFilename = template.background;
+            
+            // Load predefined bounding boxes for this background if edit mode doesn't have custom ones
+            this.loadBackgroundBoundingBoxes();
+            
+            // Wait for background image to be properly loaded and positioned
+            await new Promise((resolve, reject) => {
+                const domImg = document.getElementById('background-image');
+                if (domImg.complete && domImg.naturalWidth > 0) {
+                    resolve();
+                } else {
+                    domImg.onload = () => resolve();
+                    domImg.onerror = (error) => {
+                        console.error('Background image failed to load:', error);
+                        reject(new Error('Background image failed to load'));
+                    };
+                    // Add timeout to prevent hanging
+                    setTimeout(() => {
+                        console.warn('Background image load timeout, proceeding anyway');
+                        resolve();
+                    }, 3000);
+                }
+            });
+            
+            // Clear existing sprites
+            this.spriteManager.clearSprites();
+            
+            // Wait a moment for background to be properly positioned
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            // Create sprites from template positions
+            let successCount = 0;
+            for (const spriteData of template.sprites) {
+                try {
+                    // Create the sprite element
+                    const spriteElement = await this.spriteManager.createSpriteElement(spriteData.src);
+                    
+                    // Position it at the template coordinates (background-relative)
+                    const backgroundImg = document.getElementById('background-image');
+                    if (backgroundImg) {
+                        const bgRect = backgroundImg.getBoundingClientRect();
+                        const containerRect = backgroundImg.parentElement.getBoundingClientRect();
+                        const relativeX = bgRect.left - containerRect.left;
+                        const relativeY = bgRect.top - containerRect.top;
+                        
+                        // Convert from background-relative to container-relative coordinates
+                        const containerX = relativeX + spriteData.x;
+                        const containerY = relativeY + spriteData.y;
+                        
+                        spriteElement.style.left = containerX + 'px';
+                        spriteElement.style.top = containerY + 'px';
+                    }
+                    
+                    // Add to DOM and track it
+                    this.spriteManager.container.appendChild(spriteElement);
+                    this.spriteManager.activeSprites.push(spriteElement);
+                    successCount++;
+                    
+                } catch (error) {
+                    console.warn(`Could not create sprite ${spriteData.src} from template:`, error);
+                }
+            }
+            
+            console.log(`Template loaded successfully: ${successCount}/${template.sprites.length} sprites positioned`);
+            
+        } catch (error) {
+            console.error(`Failed to load template ${template.name}:`, error);
+            throw error;
         }
     }
     

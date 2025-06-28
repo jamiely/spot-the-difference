@@ -453,7 +453,7 @@ button:disabled {
     margin-bottom: 1rem;
 }
 
-#place-all-sprites {
+#place-all-sprites, #reset-outside-sprites {
     background: #28a745;
     color: white;
     border: none;
@@ -463,10 +463,19 @@ button:disabled {
     font-size: 1rem;
     font-weight: bold;
     width: 100%;
+    margin-bottom: 0.5rem;
 }
 
-#place-all-sprites:hover {
+#place-all-sprites:hover, #reset-outside-sprites:hover {
     background: #218838;
+}
+
+#reset-outside-sprites {
+    background: #fd7e14;
+}
+
+#reset-outside-sprites:hover {
+    background: #e8630c;
 }
 
 /* Trash Bin Styles */

@@ -1,0 +1,366 @@
+{
+  "name": "Bookcase Template",
+  "background": "bookcase.png",
+  "sprites": [
+    {
+      "id": "sprite_0",
+      "src": "orange_ruler.png",
+      "x": 39,
+      "y": 544,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_1",
+      "src": "flashlight_keychain.png",
+      "x": 115,
+      "y": 589,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_2",
+      "src": "jump_rope.png",
+      "x": 339,
+      "y": 557,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_3",
+      "src": "flower_keychain.png",
+      "x": 84,
+      "y": -106,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_4",
+      "src": "art_scissors.png",
+      "x": 204,
+      "y": -128,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_5",
+      "src": "green_lunchbox.png",
+      "x": 324,
+      "y": -131,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_6",
+      "src": "green_frog_toy.png",
+      "x": 30,
+      "y": -113,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_7",
+      "src": "paper_snowflake.png",
+      "x": 150,
+      "y": -108,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_8",
+      "src": "kids_watch.png",
+      "x": 270,
+      "y": -148,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_9",
+      "src": "open_storybook.png",
+      "x": -24,
+      "y": -150,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_10",
+      "src": "orange_lollipop.png",
+      "x": 96,
+      "y": -110,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_11",
+      "src": "striped_sock.png",
+      "x": 216,
+      "y": -143,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_12",
+      "src": "star_wand.png",
+      "x": 398,
+      "y": 243,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_13",
+      "src": "tape_dispenser.png",
+      "x": 336,
+      "y": -92,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_14",
+      "src": "winter_mittens.png",
+      "x": 42,
+      "y": -99,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_15",
+      "src": "toy_dinosaur.png",
+      "x": 286,
+      "y": 49,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_16",
+      "src": "gold_star.png",
+      "x": 370,
+      "y": 63,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_17",
+      "src": "crumpled_paper.png",
+      "x": 374,
+      "y": 207,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_18",
+      "src": "homework_paper.png",
+      "x": 281,
+      "y": 180,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_19",
+      "src": "rain_boot.png",
+      "x": 250,
+      "y": 179,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_20",
+      "src": "pencil_case.png",
+      "x": 201,
+      "y": 208,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_21",
+      "src": "coin_purse.png",
+      "x": 139,
+      "y": 198,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_22",
+      "src": "cat_drawing.png",
+      "x": 48,
+      "y": 173,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_23",
+      "src": "permission_slip.png",
+      "x": 299,
+      "y": 309,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_24",
+      "src": "school_dance_flyer.png",
+      "x": 280,
+      "y": 313,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_25",
+      "src": "lunch_menu.png",
+      "x": 265,
+      "y": 323,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_26",
+      "src": "paintbrush.png",
+      "x": 238,
+      "y": 296,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_27",
+      "src": "winter_mitten.png",
+      "x": 214,
+      "y": 304,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_28",
+      "src": "watercolor_paint_set.png",
+      "x": 139,
+      "y": 309,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_29",
+      "src": "orange_crayon.png",
+      "x": 388,
+      "y": 413,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_30",
+      "src": "lunch_bag_orange.png",
+      "x": 396,
+      "y": 600,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_31",
+      "src": "spilled_paint_cup.png",
+      "x": 286,
+      "y": 564,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_32",
+      "src": "spilled_glue.png",
+      "x": 279,
+      "y": 584,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_33",
+      "src": "orange_sock.png",
+      "x": 217,
+      "y": 578,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_34",
+      "src": "spilled_juice_box.png",
+      "x": 151,
+      "y": 578,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_35",
+      "src": "pink_backpack.png",
+      "x": 32,
+      "y": 518,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_36",
+      "src": "covid_lanyard.png",
+      "x": 108,
+      "y": 564,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_37",
+      "src": "yellow_pencil.png",
+      "x": 44,
+      "y": 592,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_38",
+      "src": "purple_glasses.png",
+      "x": 350,
+      "y": 518,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_39",
+      "src": "glue_stick.png",
+      "x": 345,
+      "y": 456,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_40",
+      "src": "green_robot.png",
+      "x": 285,
+      "y": 390,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_41",
+      "src": "four_leaf_clover.png",
+      "x": 303,
+      "y": 427,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_42",
+      "src": "name_tag.png",
+      "x": 241,
+      "y": 464,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_43",
+      "src": "leaf_wreath.png",
+      "x": 170,
+      "y": 500,
+      "width": 155,
+      "height": 155
+    },
+    {
+      "id": "sprite_44",
+      "src": "paper_airplane.png",
+      "x": 192,
+      "y": 447,
+      "width": 155,
+      "height": 155
+    }
+  ]
+}

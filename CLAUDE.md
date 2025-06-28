@@ -1,2 +1,3 @@
 - Keep JS modules very focused and small
 - Avoid adding too much functionality in the entrypoint
+- The "Template" refers to the active background, sprites, and their positions.

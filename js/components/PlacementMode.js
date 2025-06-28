@@ -1,4 +1,5 @@
 import { SPRITE_CONFIG } from '../config/SpriteConfig.js';
+import { TemplateManager } from '../utils/TemplateManager.js';
 
 export class PlacementMode {
     constructor() {
@@ -9,6 +10,8 @@ export class PlacementMode {
         this.selectedSprite = null; // Track the currently selected sprite
         this.keyRepeatTimer = null; // For holding arrow keys
         this.keyRepeatDelay = 150; // Milliseconds between repeats
+        this.templateManager = new TemplateManager(); // Template management
+        this.currentTemplate = null; // Currently loaded template
         
         // Bind event handlers once to preserve references
         this.boundHandleSpriteMouseDown = this.handleSpriteMouseDown.bind(this);
@@ -673,6 +676,18 @@ export class PlacementMode {
                     <span id="container-position">Container: -</span><br>
                     <span id="background-position">Background: -</span>
                 </div>
+                <div class="template-section" style="margin-bottom: 1rem; padding: 0.5rem; background: #e8f4fd; border-radius: 4px;">
+                    <strong>Templates:</strong><br>
+                    <div style="margin: 0.5rem 0;">
+                        <select id="template-select" style="width: 100%; margin-bottom: 0.5rem;">
+                            <option value="">Select a template...</option>
+                        </select>
+                    </div>
+                    <div class="template-buttons" style="display: flex; gap: 0.25rem; flex-wrap: wrap;">
+                        <button id="load-template" style="flex: 1; font-size: 0.8rem; padding: 0.25rem;">Load</button>
+                        <button id="save-template" style="flex: 1; font-size: 0.8rem; padding: 0.25rem;">Save As...</button>
+                    </div>
+                </div>
                 <div class="placement-actions">
                     <button id="place-all-sprites">Place All Sprites</button>
                     <button id="reset-outside-sprites">Move Sprites Outside</button>
@@ -706,6 +721,18 @@ export class PlacementMode {
             document.getElementById('reset-outside-sprites').addEventListener('click', () => {
                 this.resetOutsideSprites();
             });
+            
+            // Template event handlers
+            document.getElementById('load-template').addEventListener('click', () => {
+                this.loadSelectedTemplate();
+            });
+            
+            document.getElementById('save-template').addEventListener('click', () => {
+                this.saveCurrentTemplate();
+            });
+            
+            // Load available templates
+            this.loadAvailableTemplates();
         }
         
         // Create trash bin
@@ -1144,5 +1171,176 @@ export class PlacementMode {
     dispatchEvent(eventName, detail) {
         const event = new CustomEvent(eventName, { detail });
         document.dispatchEvent(event);
+    }
+    
+    // Template Management Methods
+    async loadAvailableTemplates() {
+        try {
+            await this.templateManager.loadAvailableTemplates();
+            this.updateTemplateDropdown();
+        } catch (error) {
+            console.error('Failed to load templates:', error);
+        }
+    }
+    
+    updateTemplateDropdown() {
+        const select = document.getElementById('template-select');
+        if (!select) return;
+        
+        // Clear existing options except the first one
+        while (select.children.length > 1) {
+            select.removeChild(select.lastChild);
+        }
+        
+        // Add templates to dropdown
+        const templates = this.templateManager.getLoadedTemplates();
+        templates.forEach(template => {
+            const option = document.createElement('option');
+            option.value = template.id;
+            option.textContent = `${template.name} (${template.sprites.length} sprites)`;
+            select.appendChild(option);
+        });
+    }
+    
+    async loadSelectedTemplate() {
+        const select = document.getElementById('template-select');
+        if (!select || !select.value) {
+            this.showFeedback('load-template', 'Please select a template', 'error');
+            return;
+        }
+        
+        try {
+            const template = this.templateManager.getTemplateById(select.value);
+            if (!template) {
+                this.showFeedback('load-template', 'Template not found', 'error');
+                return;
+            }
+            
+            // Check if background exists
+            const backgroundExists = await this.templateManager.checkBackgroundExists(template.background);
+            if (!backgroundExists) {
+                this.showFeedback('load-template', `Background ${template.background} not found`, 'error');
+                return;
+            }
+            
+            // Load the background first
+            await this.loadTemplateBackground(template.background);
+            
+            // Apply sprite positions
+            const result = await this.applySpritePositions(template.sprites);
+            
+            // Update current template reference
+            this.currentTemplate = template;
+            
+            let message = `Loaded template: ${template.name}`;
+            if (result.created > 0) message += `, created ${result.created}`;
+            if (result.removed > 0) message += `, removed ${result.removed}`;
+            
+            this.showFeedback('load-template', message, 'success');
+            
+        } catch (error) {
+            console.error('Failed to load template:', error);
+            this.showFeedback('load-template', `Error: ${error.message}`, 'error');
+        }
+    }
+    
+    async loadTemplateBackground(backgroundFilename) {
+        // Dispatch event to request background change
+        const backgroundChangeEvent = new CustomEvent('requestBackgroundChange', {
+            detail: { background: backgroundFilename }
+        });
+        document.dispatchEvent(backgroundChangeEvent);
+        
+        // Wait a moment for the background to load
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    async saveCurrentTemplate() {
+        const templateName = prompt('Enter template name:');
+        if (!templateName || !templateName.trim()) {
+            return;
+        }
+        
+        try {
+            const backgroundImg = document.getElementById('background-image');
+            if (!backgroundImg || !backgroundImg.src) {
+                this.showFeedback('save-template', 'No background image loaded', 'error');
+                return;
+            }
+            
+            const backgroundFilename = backgroundImg.src.split('/').pop();
+            
+            // Create template from current state
+            const template = this.templateManager.createTemplateFromCurrentState(
+                templateName.trim(),
+                backgroundFilename,
+                this.spritePositions
+            );
+            
+            // Generate JSON for manual saving
+            const templateJson = this.templateManager.exportTemplateAsJson(template);
+            
+            // Show JSON in a modal or copy to clipboard
+            this.showTemplateJson(templateName.trim(), templateJson);
+            
+        } catch (error) {
+            console.error('Failed to save template:', error);
+            this.showFeedback('save-template', `Error: ${error.message}`, 'error');
+        }
+    }
+    
+    showTemplateJson(templateName, templateJson) {
+        // Create a modal to show the JSON
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); z-index: 2000; display: flex; 
+            align-items: center; justify-content: center;
+        `;
+        
+        const content = document.createElement('div');
+        content.style.cssText = `
+            background: white; padding: 1rem; border-radius: 8px; 
+            max-width: 600px; width: 90%; max-height: 80%; overflow-y: auto;
+        `;
+        
+        content.innerHTML = `
+            <h3>Template JSON: ${templateName}</h3>
+            <p>Save this JSON as <code>${templateName.toLowerCase().replace(/\s+/g, '_')}.json</code> in the templates folder:</p>
+            <textarea readonly style="width: 100%; height: 300px; font-family: monospace; font-size: 0.8rem;">${templateJson}</textarea>
+            <div style="margin-top: 1rem; text-align: right;">
+                <button id="copy-template-json" style="margin-right: 0.5rem;">Copy JSON</button>
+                <button id="close-template-modal">Close</button>
+            </div>
+        `;
+        
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+        
+        // Event handlers
+        document.getElementById('copy-template-json').addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(templateJson);
+                document.getElementById('copy-template-json').textContent = 'Copied!';
+                setTimeout(() => {
+                    if (document.getElementById('copy-template-json')) {
+                        document.getElementById('copy-template-json').textContent = 'Copy JSON';
+                    }
+                }, 2000);
+            } catch (error) {
+                console.error('Failed to copy to clipboard:', error);
+            }
+        });
+        
+        document.getElementById('close-template-modal').addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+        
+        // Close on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                document.body.removeChild(modal);
+            }
+        });
     }
 }
