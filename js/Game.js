@@ -2,6 +2,7 @@ import { ScoreDisplay } from './components/ScoreDisplay.js';
 import { SpriteManager } from './components/SpriteManager.js';
 import { EditMode } from './components/EditMode.js';
 import { BackgroundLoader } from './utils/BackgroundLoader.js';
+import { getBoundingBoxesForBackground } from './config/BoundingBoxConfig.js';
 
 export class Game {
     constructor() {
@@ -10,6 +11,7 @@ export class Game {
         this.editMode = new EditMode();
         this.backgroundLoader = new BackgroundLoader();
         this.isGameActive = false;
+        this.currentBackgroundFilename = null;
         
         this.setupEventListeners();
         this.initializeAssets();
@@ -56,6 +58,12 @@ export class Game {
                 const backgroundImg = await this.backgroundLoader.loadBackgroundImage(backgroundSrc);
                 console.log('Background loaded successfully:', backgroundImg.src);
                 this.setBackgroundImage(backgroundImg);
+                
+                // Extract filename from path for bounding box lookup
+                this.currentBackgroundFilename = backgroundSrc.split('/').pop();
+                
+                // Load predefined bounding boxes for this background if edit mode doesn't have custom ones
+                this.loadBackgroundBoundingBoxes();
             } catch (error) {
                 console.warn('Could not load background:', error);
             }
@@ -66,6 +74,17 @@ export class Game {
         const boundingBoxes = this.editMode.getBoundingBoxes();
         const spritesDisplayed = this.spriteManager.displayAllSprites(boundingBoxes);
         console.log('Sprites displayed:', spritesDisplayed, 'Available sprites:', this.spriteManager.getLoadedSpritesCount());
+    }
+
+    loadBackgroundBoundingBoxes() {
+        // Only load predefined bounding boxes if edit mode doesn't have custom ones
+        if (this.editMode.getBoundingBoxes().length === 0 && this.currentBackgroundFilename) {
+            const predefinedBoxes = getBoundingBoxesForBackground(this.currentBackgroundFilename);
+            if (predefinedBoxes.length > 0) {
+                console.log(`Loading ${predefinedBoxes.length} predefined bounding boxes for ${this.currentBackgroundFilename}`);
+                this.editMode.setBoundingBoxes(predefinedBoxes);
+            }
+        }
     }
 
     setBackgroundImage(img) {

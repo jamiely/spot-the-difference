@@ -15,5 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Game completed!');
     });
     
+    // Auto-start the game after assets are loaded
+    setTimeout(() => {
+        game.startGame();
+    }, 500);
+    
     window.game = game;
 });

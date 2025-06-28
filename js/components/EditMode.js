@@ -225,6 +225,7 @@ export class EditMode {
             editPanel.innerHTML = `
                 <h3>Edit Mode (Press E to exit)</h3>
                 <p>Drag on the background to create bounding boxes. Double-click boxes to remove them.</p>
+                <div id="background-info" style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; display: none;"></div>
                 <label for="bounding-boxes-json">Bounding Boxes JSON:</label>
                 <textarea id="bounding-boxes-json" rows="10"></textarea>
                 <div class="edit-buttons">
@@ -249,6 +250,7 @@ export class EditMode {
         }
         editPanel.style.display = 'block';
         this.updateJsonExport();
+        this.updateBackgroundInfo();
     }
     
     hideEditInterface() {
@@ -270,6 +272,23 @@ export class EditMode {
             textarea.value = JSON.stringify(this.boundingBoxes, null, 2);
         }
     }
+
+    updateBackgroundInfo() {
+        const backgroundInfo = document.getElementById('background-info');
+        const backgroundImg = document.getElementById('background-image');
+        
+        if (backgroundInfo && backgroundImg && backgroundImg.src) {
+            const filename = backgroundImg.src.split('/').pop();
+            const boxCount = this.boundingBoxes.length;
+            
+            if (boxCount > 0) {
+                backgroundInfo.textContent = `Background: ${filename} (${boxCount} bounding boxes loaded)`;
+                backgroundInfo.style.display = 'block';
+            } else {
+                backgroundInfo.style.display = 'none';
+            }
+        }
+    }
     
     getBoundingBoxes() {
         return this.boundingBoxes;
@@ -278,6 +297,12 @@ export class EditMode {
     setBoundingBoxes(boxes) {
         this.clearAllBoxes();
         this.boundingBoxes = boxes || [];
+        
+        // If not in edit mode, don't create visual boxes
+        if (this.isActive) {
+            this.createVisualBoxes();
+        }
+        
         this.updateJsonExport();
     }
     
