@@ -24,7 +24,11 @@ export class PlacementMode {
             if (e.key === 'P' || e.key === 'p') {
                 this.togglePlacementMode();
             } else if (this.isActive && this.selectedSprite) {
-                this.handleArrowKeys(e);
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    this.deleteSelectedSprite();
+                } else {
+                    this.handleArrowKeys(e);
+                }
             }
         });
         
@@ -164,6 +168,11 @@ export class PlacementMode {
         // Update selection indicator position if this sprite is selected
         this.updateSelectionIndicatorPosition(this.draggedSprite, newX, newY);
         
+        // Update position display if this is the selected sprite
+        if (this.selectedSprite === this.draggedSprite) {
+            this.updatePositionDisplay(this.draggedSprite);
+        }
+        
         // Check if hovering over trash bin and add visual feedback
         const trashBin = document.getElementById('trash-bin');
         if (trashBin) {
@@ -220,6 +229,11 @@ export class PlacementMode {
         // Update sprite positions array
         this.updateSpritePositions();
         
+        // Update position display if this is the selected sprite
+        if (this.selectedSprite === this.draggedSprite) {
+            this.updatePositionDisplay(this.draggedSprite);
+        }
+        
         console.log(`Final sprite position: ${finalX}, ${finalY}`);
         
         // Clean up trash hover state (reuse trashBin from above)
@@ -267,12 +281,64 @@ export class PlacementMode {
         
         // Add visual selection indicator
         this.addSelectionIndicator(sprite);
+        
+        // Update position display
+        this.updatePositionDisplay(sprite);
     }
     
     clearSpriteSelection() {
         if (this.selectedSprite) {
             this.removeSelectionIndicator(this.selectedSprite);
             this.selectedSprite = null;
+        }
+        // Clear position display
+        this.updatePositionDisplay(null);
+    }
+    
+    updatePositionDisplay(sprite) {
+        const spriteNameEl = document.getElementById('sprite-name');
+        const absolutePosEl = document.getElementById('absolute-position');
+        const containerPosEl = document.getElementById('container-position');
+        const backgroundPosEl = document.getElementById('background-position');
+        
+        if (!spriteNameEl || !absolutePosEl || !containerPosEl || !backgroundPosEl) {
+            return; // Elements not found
+        }
+        
+        if (!sprite) {
+            spriteNameEl.textContent = 'No sprite selected';
+            absolutePosEl.textContent = 'Absolute: -';
+            containerPosEl.textContent = 'Container: -';
+            backgroundPosEl.textContent = 'Background: -';
+            return;
+        }
+        
+        // Get sprite name
+        const spriteName = sprite.src.split('/').pop();
+        spriteNameEl.textContent = spriteName;
+        
+        // Get absolute position (relative to viewport)
+        const absoluteRect = sprite.getBoundingClientRect();
+        absolutePosEl.textContent = `Absolute: (${Math.round(absoluteRect.left)}, ${Math.round(absoluteRect.top)})`;
+        
+        // Get container position (relative to container)
+        const containerLeft = parseInt(sprite.style.left) || 0;
+        const containerTop = parseInt(sprite.style.top) || 0;
+        containerPosEl.textContent = `Container: (${containerLeft}, ${containerTop})`;
+        
+        // Get background position (relative to background image)
+        const backgroundImg = document.getElementById('background-image');
+        if (backgroundImg) {
+            const imgRect = backgroundImg.getBoundingClientRect();
+            const containerRect = backgroundImg.parentElement.getBoundingClientRect();
+            const relativeX = imgRect.left - containerRect.left;
+            const relativeY = imgRect.top - containerRect.top;
+            
+            const backgroundX = containerLeft - relativeX;
+            const backgroundY = containerTop - relativeY;
+            backgroundPosEl.textContent = `Background: (${Math.round(backgroundX)}, ${Math.round(backgroundY)})`;
+        } else {
+            backgroundPosEl.textContent = 'Background: (no bg image)';
         }
     }
     
@@ -449,6 +515,30 @@ export class PlacementMode {
         }
     }
     
+    deleteSelectedSprite() {
+        if (!this.selectedSprite) return;
+        
+        console.log('Deleting selected sprite:', this.selectedSprite.src);
+        
+        // Show deletion feedback
+        this.showLayerFeedback('🗑️ Deleted');
+        
+        // Remove the sprite after a brief delay to show the feedback
+        setTimeout(() => {
+            if (this.selectedSprite && this.selectedSprite.parentElement) {
+                // Remove selection indicator before deleting sprite
+                this.removeSelectionIndicator(this.selectedSprite);
+                
+                // Remove the sprite
+                this.selectedSprite.remove();
+                this.selectedSprite = null;
+                
+                // Update sprite positions
+                this.updateSpritePositions();
+            }
+        }, 300);
+    }
+    
     showLayerFeedback(message) {
         if (!this.selectedSprite) return;
         
@@ -517,14 +607,35 @@ export class PlacementMode {
         const relativeX = imgRect.left - containerRect.left;
         const relativeY = imgRect.top - containerRect.top;
         
+        if (sprites.length > 0) {
+            console.log(`Saving: Background image: ${imgRect.width}x${imgRect.height} at (${imgRect.left}, ${imgRect.top})`);
+            console.log(`Saving: Container: ${containerRect.width}x${containerRect.height} at (${containerRect.left}, ${containerRect.top})`);
+            console.log(`Saving: Calculated relative offset: (${relativeX}, ${relativeY})`);
+        }
+        
         this.spritePositions = Array.from(sprites).map((sprite, index) => {
-            const spriteRect = sprite.getBoundingClientRect();
-            const containerX = spriteRect.left - containerRect.left;
-            const containerY = spriteRect.top - containerRect.top;
+            // Use style.left/top if available (more accurate for recently moved sprites)
+            // Otherwise fall back to getBoundingClientRect()
+            let containerX, containerY;
+            
+            if (sprite.style.left && sprite.style.top) {
+                // Use the CSS position values directly
+                containerX = parseInt(sprite.style.left) || 0;
+                containerY = parseInt(sprite.style.top) || 0;
+            } else {
+                // Fall back to getBoundingClientRect for sprites without explicit positioning
+                const spriteRect = sprite.getBoundingClientRect();
+                containerX = spriteRect.left - containerRect.left;
+                containerY = spriteRect.top - containerRect.top;
+            }
             
             // Convert to background-relative coordinates
             const backgroundX = containerX - relativeX;
             const backgroundY = containerY - relativeY;
+            
+            if (index === 0) { // Debug first sprite only
+                console.log(`[${new Date().toISOString()}] Saving ${sprite.src.split('/').pop()}: Container(${containerX}, ${containerY}) -> JSON(${backgroundX}, ${backgroundY}), RelativeOffset(${relativeX}, ${relativeY})`);
+            }
             
             // Calculate actual sprite size based on container
             const actualSpriteSize = SPRITE_CONFIG.getSizeInPixels(
@@ -555,8 +666,16 @@ export class PlacementMode {
                 <h3>Placement Mode (Press P to exit)</h3>
                 <p>Drag sprites to reposition them. Drop sprites on the trash bin to discard them.</p>
                 <div id="placement-info" style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem;"></div>
+                <div id="position-display" style="font-size: 0.8rem; color: #333; margin-bottom: 1rem; padding: 0.5rem; background: #f0f0f0; border-radius: 4px;">
+                    <strong>Selected Sprite Position:</strong><br>
+                    <span id="sprite-name">No sprite selected</span><br>
+                    <span id="absolute-position">Absolute: -</span><br>
+                    <span id="container-position">Container: -</span><br>
+                    <span id="background-position">Background: -</span>
+                </div>
                 <div class="placement-actions">
                     <button id="place-all-sprites">Place All Sprites</button>
+                    <button id="reset-outside-sprites">Move Sprites Outside</button>
                 </div>
                 <label for="sprite-positions-json">Sprite Positions JSON:</label>
                 <textarea id="sprite-positions-json" rows="8"></textarea>
@@ -583,6 +702,10 @@ export class PlacementMode {
             document.getElementById('place-all-sprites').addEventListener('click', () => {
                 this.placeAllSprites();
             });
+            
+            document.getElementById('reset-outside-sprites').addEventListener('click', () => {
+                this.resetOutsideSprites();
+            });
         }
         
         // Create trash bin
@@ -607,6 +730,9 @@ export class PlacementMode {
         const textarea = document.getElementById('sprite-positions-json');
         if (textarea) {
             textarea.value = JSON.stringify(this.spritePositions, null, 2);
+            if (this.spritePositions.length > 0) {
+                console.log(`[${new Date().toISOString()}] Updated JSON - First sprite: ${this.spritePositions[0].src} at (${this.spritePositions[0].x}, ${this.spritePositions[0].y})`);
+            }
         }
     }
     
@@ -640,7 +766,7 @@ export class PlacementMode {
         }
     }
     
-    loadJsonFromTextarea() {
+    async loadJsonFromTextarea() {
         const textarea = document.getElementById('sprite-positions-json');
         if (!textarea || !textarea.value.trim()) {
             this.showFeedback('load-positions', 'No JSON to load', 'error');
@@ -662,8 +788,11 @@ export class PlacementMode {
                 }
             }
             
-            this.applySpritePositions(jsonData);
-            this.showFeedback('load-positions', `Loaded ${jsonData.length} positions`, 'success');
+            const result = await this.applySpritePositions(jsonData);
+            let message = `Loaded ${jsonData.length} positions`;
+            if (result.created > 0) message += `, created ${result.created}`;
+            if (result.removed > 0) message += `, removed ${result.removed}`;
+            this.showFeedback('load-positions', message, 'success');
             
         } catch (error) {
             console.error('Failed to load JSON:', error);
@@ -671,7 +800,7 @@ export class PlacementMode {
         }
     }
     
-    applySpritePositions(positions) {
+    async applySpritePositions(positions) {
         const sprites = document.querySelectorAll('.game-sprite');
         const backgroundImg = document.getElementById('background-image');
         
@@ -685,7 +814,16 @@ export class PlacementMode {
         const relativeX = imgRect.left - containerRect.left;
         const relativeY = imgRect.top - containerRect.top;
         
-        // Apply positions to matching sprites
+        console.log(`Loading: Background image: ${imgRect.width}x${imgRect.height} at (${imgRect.left}, ${imgRect.top})`);
+        console.log(`Loading: Container: ${containerRect.width}x${containerRect.height} at (${containerRect.left}, ${containerRect.top})`);
+        console.log(`Loading: Calculated relative offset: (${relativeX}, ${relativeY})`);
+        
+        // Track which sprites from JSON we found and which are missing
+        const foundSprites = new Set();
+        const missingSprites = [];
+        const spritesToRemove = [];
+        
+        // First pass: apply positions to matching sprites and track found ones
         positions.forEach(position => {
             // Find sprite by src filename
             const matchingSprite = Array.from(sprites).find(sprite => 
@@ -693,17 +831,97 @@ export class PlacementMode {
             );
             
             if (matchingSprite) {
-                // Convert from background-relative to container-relative coordinates
-                const containerX = relativeX + position.x;
-                const containerY = relativeY + position.y;
+                foundSprites.add(position.src);
                 
-                matchingSprite.style.left = containerX + 'px';
-                matchingSprite.style.top = containerY + 'px';
+                // Get current sprite position (container-relative)
+                const currentLeft = parseInt(matchingSprite.style.left) || 0;
+                const currentTop = parseInt(matchingSprite.style.top) || 0;
+                
+                // Convert current position to background-relative for comparison
+                const currentBackgroundX = currentLeft - relativeX;
+                const currentBackgroundY = currentTop - relativeY;
+                
+                // Calculate where the sprite should be in container coordinates
+                const targetContainerX = relativeX + position.x;
+                const targetContainerY = relativeY + position.y;
+                
+                console.log(`Loading ${position.src}: Current container(${currentLeft}, ${currentTop}) = background(${currentBackgroundX}, ${currentBackgroundY}), JSON(${position.x}, ${position.y}), Target container(${targetContainerX}, ${targetContainerY}), RelativeOffset(${relativeX}, ${relativeY})`);
+                
+                // Compare container positions directly (more reliable than background coordinates)
+                const tolerance = 2;
+                if (Math.abs(targetContainerX - currentLeft) > tolerance || Math.abs(targetContainerY - currentTop) > tolerance) {
+                    // Use the already calculated target container coordinates
+                    matchingSprite.style.left = targetContainerX + 'px';
+                    matchingSprite.style.top = targetContainerY + 'px';
+                    console.log(`Moved ${position.src} from container(${currentLeft}, ${currentTop}) to container(${targetContainerX}, ${targetContainerY}) [background: (${currentBackgroundX}, ${currentBackgroundY}) -> (${position.x}, ${position.y})]`);
+                } else {
+                    console.log(`Skipped moving ${position.src} - already at target position: container(${currentLeft}, ${currentTop}) matches target(${targetContainerX}, ${targetContainerY})`);
+                }
+            } else {
+                // Sprite not found - we need to create it
+                missingSprites.push(position);
             }
         });
         
-        // Update our internal positions array
-        this.updateSpritePositions();
+        // Second pass: identify sprites to remove (not mentioned in JSON)
+        Array.from(sprites).forEach(sprite => {
+            const filename = sprite.src.split('/').pop();
+            console.log(`Checking sprite for removal: ${filename}, foundSprites has: [${Array.from(foundSprites).join(', ')}]`);
+            if (!foundSprites.has(filename)) {
+                spritesToRemove.push(sprite);
+                console.log(`Marking ${filename} for removal - not found in JSON`);
+            } else {
+                console.log(`Keeping ${filename} - found in JSON`);
+            }
+        });
+        
+        // Remove sprites not mentioned in the JSON
+        spritesToRemove.forEach(sprite => {
+            console.log(`Removing sprite not in JSON: ${sprite.src.split('/').pop()}`);
+            
+            // Remove selection indicator if this sprite is selected
+            if (sprite === this.selectedSprite) {
+                this.removeSelectionIndicator(sprite);
+                this.selectedSprite = null;
+            }
+            
+            sprite.remove();
+        });
+        
+        // Create missing sprites
+        if (missingSprites.length > 0) {
+            console.log(`Creating ${missingSprites.length} missing sprites from JSON`);
+            
+            for (const position of missingSprites) {
+                try {
+                    // Request sprite creation through event system
+                    const createSpriteEvent = new CustomEvent('requestSpriteCreation', {
+                        detail: { 
+                            spriteSrc: position.src,
+                            x: position.x,
+                            y: position.y
+                        }
+                    });
+                    document.dispatchEvent(createSpriteEvent);
+                } catch (error) {
+                    console.warn(`Could not create sprite ${position.src}:`, error);
+                }
+            }
+        }
+        
+        // Don't call updateSpritePositions() here as it would overwrite the loaded JSON
+        // The positions are already correctly applied to the sprites
+        
+        // Update position display if there's a selected sprite
+        if (this.selectedSprite) {
+            this.updatePositionDisplay(this.selectedSprite);
+        }
+        
+        // Return counts for feedback
+        return {
+            created: missingSprites.length,
+            removed: spritesToRemove.length
+        };
     }
     
     clearAllPositions() {
@@ -821,6 +1039,86 @@ export class PlacementMode {
         // Re-enable sprite dragging after sprites are regenerated
         // Use longer delay and poll for completion
         this.waitForSpritesAndRefresh();
+    }
+    
+    resetOutsideSprites() {
+        const backgroundImg = document.getElementById('background-image');
+        if (!backgroundImg) {
+            this.showFeedback('reset-outside-sprites', 'No background image found', 'error');
+            return;
+        }
+        
+        // Get background image boundaries and container boundaries
+        const bgRect = backgroundImg.getBoundingClientRect();
+        const containerRect = backgroundImg.parentElement.getBoundingClientRect();
+        const relativeLeft = bgRect.left - containerRect.left;
+        const relativeTop = bgRect.top - containerRect.top;
+        const relativeRight = relativeLeft + bgRect.width;
+        const relativeBottom = relativeTop + bgRect.height;
+        
+        const sprites = document.querySelectorAll('.game-sprite');
+        let movedCount = 0;
+        
+        sprites.forEach((sprite, index) => {
+            const spriteRect = sprite.getBoundingClientRect();
+            const spriteLeft = spriteRect.left - containerRect.left;
+            const spriteTop = spriteRect.top - containerRect.top;
+            const spriteRight = spriteLeft + spriteRect.width;
+            const spriteBottom = spriteTop + spriteRect.height;
+            
+            // Check if sprite is inside background boundaries
+            const isInside = spriteLeft >= relativeLeft && 
+                            spriteTop >= relativeTop && 
+                            spriteRight <= relativeRight && 
+                            spriteBottom <= relativeBottom;
+            
+            if (isInside) {
+                movedCount++;
+                
+                // Scatter sprites evenly around all sides of the background image
+                const margin = 20; // Distance from image edge
+                const side = movedCount % 4; // Rotate through 4 sides
+                const positionOnSide = Math.floor(movedCount / 4); // Position along that side
+                
+                let outsideX, outsideY;
+                
+                switch (side) {
+                    case 0: // Top side
+                        outsideX = relativeLeft + (positionOnSide * 120) % bgRect.width;
+                        outsideY = relativeTop - spriteRect.height - margin;
+                        break;
+                    case 1: // Right side
+                        outsideX = relativeRight + margin;
+                        outsideY = relativeTop + (positionOnSide * 100) % bgRect.height;
+                        break;
+                    case 2: // Bottom side
+                        outsideX = relativeLeft + (positionOnSide * 120) % bgRect.width;
+                        outsideY = relativeBottom + margin;
+                        break;
+                    case 3: // Left side
+                        outsideX = relativeLeft - spriteRect.width - margin;
+                        outsideY = relativeTop + (positionOnSide * 100) % bgRect.height;
+                        break;
+                }
+                
+                // Apply new position outside the image
+                sprite.style.left = outsideX + 'px';
+                sprite.style.top = outsideY + 'px';
+                
+                // Update selection indicator if this sprite is selected
+                if (sprite === this.selectedSprite) {
+                    this.updateSelectionIndicatorPosition(sprite, outsideX, outsideY);
+                }
+            }
+        });
+        
+        if (movedCount > 0) {
+            this.showFeedback('reset-outside-sprites', `Moved ${movedCount} sprites outside`, 'success');
+            // Update sprite positions array
+            this.updateSpritePositions();
+        } else {
+            this.showFeedback('reset-outside-sprites', 'No sprites were inside', 'success');
+        }
     }
     
     showFeedback(buttonId, message, type = 'success') {
