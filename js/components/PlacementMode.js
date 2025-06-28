@@ -148,6 +148,12 @@ export class PlacementMode {
         this.draggedSprite.style.zIndex = '1000';
         this.draggedSprite.style.opacity = '0.8';
         
+        // Disable pointer events on placement panel during drag to allow trash interaction
+        const placementPanel = document.getElementById('placement-panel');
+        if (placementPanel) {
+            placementPanel.style.pointerEvents = 'none';
+        }
+        
         console.log('Started dragging sprite:', this.draggedSprite.src);
     }
     
@@ -248,6 +254,12 @@ export class PlacementMode {
     }
     
     clearDragState() {
+        // Re-enable pointer events on placement panel after drag
+        const placementPanel = document.getElementById('placement-panel');
+        if (placementPanel) {
+            placementPanel.style.pointerEvents = 'auto';
+        }
+        
         this.draggedSprite = null;
         this.dragOffset = { x: 0, y: 0 };
     }
