@@ -93,6 +93,10 @@ export class GameBoard {
     
     reset() {
         this.foundDifferences.clear();
+        this.clearCanvases();
+    }
+
+    clearCanvases() {
         this.leftCtx.clearRect(0, 0, this.leftCanvas.width, this.leftCanvas.height);
         this.rightCtx.clearRect(0, 0, this.rightCanvas.width, this.rightCanvas.height);
     }

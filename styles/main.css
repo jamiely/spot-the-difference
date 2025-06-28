@@ -41,13 +41,15 @@ main {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     max-width: 900px;
     width: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 .game-board {
     display: flex;
-    gap: 2rem;
     justify-content: center;
     margin-bottom: 2rem;
+    position: relative;
 }
 
 .image-container {
@@ -140,6 +142,49 @@ button:disabled {
     100% { transform: scale(1); opacity: 0.8; }
 }
 
+.game-sprite {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    z-index: 10;
+    pointer-events: none;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.game-sprite:hover {
+    transform: scale(1.1);
+}
+
+#game-container.has-background {
+    background-blend-mode: overlay;
+}
+
+#game-container.has-background::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    z-index: 1;
+    border-radius: 15px;
+    pointer-events: none;
+}
+
+.game-board {
+    position: relative;
+    z-index: 5;
+}
+
+.game-controls {
+    position: relative;
+    z-index: 5;
+}
+
 @media (max-width: 768px) {
     .game-board {
         flex-direction: column;
@@ -159,5 +204,10 @@ button:disabled {
     #game-container {
         margin: 1rem;
         padding: 1rem;
+    }
+    
+    .game-sprite {
+        width: 30px;
+        height: 30px;
     }
 }

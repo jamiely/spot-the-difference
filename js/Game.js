@@ -1,14 +1,16 @@
-import { GameBoard } from './components/GameBoard.js';
 import { ScoreDisplay } from './components/ScoreDisplay.js';
-import { ImageGenerator } from './utils/ImageGenerator.js';
+import { SpriteManager } from './components/SpriteManager.js';
+import { BackgroundLoader } from './utils/BackgroundLoader.js';
 
 export class Game {
     constructor() {
-        this.gameBoard = new GameBoard('left-canvas', 'right-canvas');
         this.scoreDisplay = new ScoreDisplay('score-count');
+        this.spriteManager = new SpriteManager('game-container');
+        this.backgroundLoader = new BackgroundLoader();
         this.isGameActive = false;
         
         this.setupEventListeners();
+        this.initializeAssets();
     }
     
     setupEventListeners() {
@@ -20,57 +22,77 @@ export class Game {
             this.resetGame();
         });
         
-        document.addEventListener('differenceFound', (e) => {
-            this.handleDifferenceFound(e.detail);
-        });
     }
     
-    startGame() {
+    async initializeAssets() {
+        try {
+            await this.backgroundLoader.loadAvailableBackgrounds();
+            await this.spriteManager.loadAvailableSprites();
+        } catch (error) {
+            console.warn('Could not load all assets:', error);
+        }
+    }
+
+    async startGame() {
         this.isGameActive = true;
         this.updateButtonStates();
         
-        const leftCanvas = document.getElementById('left-canvas');
-        const rightCanvas = document.getElementById('right-canvas');
-        
-        const differences = ImageGenerator.generateTestImages(leftCanvas, rightCanvas);
-        this.gameBoard.setDifferences(differences);
+        await this.loadBackgroundAndSprites();
         
         this.dispatchEvent('gameStarted');
+    }
+
+    async loadBackgroundAndSprites() {
+        const backgroundSrc = this.backgroundLoader.getRandomBackground();
+        console.log('Attempting to load background:', backgroundSrc);
+        
+        if (backgroundSrc) {
+            try {
+                const backgroundImg = await this.backgroundLoader.loadBackgroundImage(backgroundSrc);
+                console.log('Background loaded successfully:', backgroundImg.src);
+                this.setBackgroundImage(backgroundImg);
+            } catch (error) {
+                console.warn('Could not load background:', error);
+            }
+        } else {
+            console.log('No background available, available backgrounds:', this.backgroundLoader.loadedBackgrounds);
+        }
+        
+        const spritesDisplayed = this.spriteManager.displayAllSprites();
+        console.log('Sprites displayed:', spritesDisplayed, 'Available sprites:', this.spriteManager.getLoadedSpritesCount());
+    }
+
+    setBackgroundImage(img) {
+        const backgroundImg = document.getElementById('background-image');
+        backgroundImg.src = img.src;
+        backgroundImg.style.display = 'block';
+        backgroundImg.style.width = '50%';
+        backgroundImg.style.height = 'auto';
+        backgroundImg.style.borderRadius = '8px';
     }
     
     resetGame() {
         this.isGameActive = false;
         this.updateButtonStates();
         
-        this.gameBoard.reset();
+        this.spriteManager.clearSprites();
+        this.clearBackground();
         this.dispatchEvent('gameReset');
     }
-    
-    handleDifferenceFound(detail) {
-        console.log(`Difference found! Progress: ${detail.totalFound}/${detail.totalDifferences}`);
-        
-        if (detail.totalFound === detail.totalDifferences) {
-            this.handleGameComplete();
-        }
+
+    clearBackground() {
+        const backgroundImg = document.getElementById('background-image');
+        backgroundImg.style.display = 'none';
+        backgroundImg.src = '';
     }
     
-    handleGameComplete() {
-        this.isGameActive = false;
-        this.updateButtonStates();
-        
-        setTimeout(() => {
-            alert(`Congratulations! You found all differences! Score: ${this.scoreDisplay.getScore()}`);
-        }, 500);
-        
-        this.dispatchEvent('gameCompleted');
-    }
     
     updateButtonStates() {
         const startButton = document.getElementById('start-game');
         const resetButton = document.getElementById('reset-game');
         
         startButton.disabled = this.isGameActive;
-        resetButton.disabled = !this.isGameActive && this.scoreDisplay.getScore() === 0;
+        resetButton.disabled = !this.isGameActive;
     }
     
     dispatchEvent(eventName, detail = {}) {
@@ -81,7 +103,6 @@ export class Game {
     getGameState() {
         return {
             isActive: this.isGameActive,
-            progress: this.gameBoard.getProgress(),
             score: this.scoreDisplay.getScore()
         };
     }

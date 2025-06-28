@@ -1,0 +1,2 @@
+- Keep JS modules very focused and small
+- Avoid adding too much functionality in the entrypoint
