@@ -33,6 +33,7 @@ export class EditMode {
         console.log('Entering edit mode');
         this.addBackgroundListeners();
         this.showEditInterface();
+        this.createVisualBoxes(); // Show existing bounding boxes
         document.body.classList.add('edit-mode');
     }
     
@@ -40,6 +41,7 @@ export class EditMode {
         console.log('Exiting edit mode');
         this.removeBackgroundListeners();
         this.hideEditInterface();
+        this.clearVisualBoxes(); // Hide bounding box visuals
         document.body.classList.remove('edit-mode');
         this.clearCurrentBox();
     }
@@ -48,20 +50,24 @@ export class EditMode {
         const backgroundImg = document.getElementById('background-image');
         if (backgroundImg) {
             backgroundImg.addEventListener('mousedown', this.handleMouseDown.bind(this));
-            backgroundImg.addEventListener('mousemove', this.handleMouseMove.bind(this));
-            backgroundImg.addEventListener('mouseup', this.handleMouseUp.bind(this));
             backgroundImg.style.cursor = 'crosshair';
         }
+        
+        // Add global listeners for mouse move and up to handle dragging across elements
+        document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+        document.addEventListener('mouseup', this.handleMouseUp.bind(this));
     }
     
     removeBackgroundListeners() {
         const backgroundImg = document.getElementById('background-image');
         if (backgroundImg) {
             backgroundImg.removeEventListener('mousedown', this.handleMouseDown.bind(this));
-            backgroundImg.removeEventListener('mousemove', this.handleMouseMove.bind(this));
-            backgroundImg.removeEventListener('mouseup', this.handleMouseUp.bind(this));
             backgroundImg.style.cursor = 'default';
         }
+        
+        // Remove global listeners
+        document.removeEventListener('mousemove', this.handleMouseMove.bind(this));
+        document.removeEventListener('mouseup', this.handleMouseUp.bind(this));
     }
     
     handleMouseDown(e) {
@@ -69,6 +75,9 @@ export class EditMode {
         
         e.preventDefault();
         this.isDrawing = true;
+        
+        // Disable pointer events on existing boxes while drawing
+        this.disableExistingBoxEvents();
         
         const backgroundImg = e.target;
         const imgRect = backgroundImg.getBoundingClientRect();
@@ -95,7 +104,9 @@ export class EditMode {
         if (!this.isActive || !this.isDrawing) return;
         
         e.preventDefault();
-        const backgroundImg = e.target;
+        const backgroundImg = document.getElementById('background-image');
+        if (!backgroundImg) return;
+        
         const imgRect = backgroundImg.getBoundingClientRect();
         
         // Current point relative to background image
@@ -128,6 +139,9 @@ export class EditMode {
         
         e.preventDefault();
         this.isDrawing = false;
+        
+        // Re-enable pointer events on existing boxes after drawing
+        this.enableExistingBoxEvents();
         
         if (this.currentBox && this.currentBox.width > 10 && this.currentBox.height > 10) {
             this.finalizeBoundingBox();
@@ -264,6 +278,23 @@ export class EditMode {
         this.boundingBoxes = [];
         document.querySelectorAll('.bounding-box').forEach(el => el.remove());
         this.updateJsonExport();
+    }
+    
+    clearVisualBoxes() {
+        // Only remove visual elements, keep the bounding boxes data
+        document.querySelectorAll('.bounding-box').forEach(el => el.remove());
+    }
+    
+    disableExistingBoxEvents() {
+        document.querySelectorAll('.bounding-box.finalized-box').forEach(el => {
+            el.style.pointerEvents = 'none';
+        });
+    }
+    
+    enableExistingBoxEvents() {
+        document.querySelectorAll('.bounding-box.finalized-box').forEach(el => {
+            el.style.pointerEvents = 'auto';
+        });
     }
     
     updateJsonExport() {

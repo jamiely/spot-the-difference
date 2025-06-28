@@ -10,7 +10,8 @@
     "test:coverage": "vitest --coverage",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate-assets": "node scripts/generate-assets.js"
   },
   "devDependencies": {
     "@vitest/ui": "^1.0.0",

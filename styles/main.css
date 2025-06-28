@@ -144,8 +144,8 @@ button:disabled {
 
 .game-sprite {
     position: absolute;
-    width: 64px;
-    height: 64px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
     z-index: 10;
     pointer-events: none;
@@ -205,8 +205,8 @@ button:disabled {
     }
     
     .game-sprite {
-        width: 48px;
-        height: 48px;
+        width: 60px;
+        height: 60px;
     }
 }
 

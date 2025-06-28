@@ -93,7 +93,7 @@ export class SpriteManager {
         const relativeLeft = bgRect.left - containerRect.left;
         const relativeTop = bgRect.top - containerRect.top;
         
-        const spriteSize = 64; // sprite width/height from CSS
+        const spriteSize = 80; // sprite width/height from CSS
         const maxAttempts = 50; // Maximum attempts to find non-colliding position
         
         let position = null;
@@ -244,7 +244,7 @@ export class SpriteManager {
     
     calculateSpriteDistribution(boundingBoxes, totalSprites) {
         // Calculate area-based capacity for each bounding box
-        const spriteSize = 64;
+        const spriteSize = 80;
         const buffer = 5;
         const effectiveSpriteSize = spriteSize + buffer;
         
