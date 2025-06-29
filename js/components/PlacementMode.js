@@ -43,11 +43,11 @@ export class PlacementMode {
         });
     }
     
-    togglePlacementMode() {
+    async togglePlacementMode() {
         this.isActive = !this.isActive;
         
         if (this.isActive) {
-            this.enterPlacementMode();
+            await this.enterPlacementMode();
         } else {
             this.exitPlacementMode();
         }
@@ -55,7 +55,7 @@ export class PlacementMode {
         this.dispatchEvent('placementModeToggled', { isActive: this.isActive });
     }
     
-    enterPlacementMode() {
+    async enterPlacementMode() {
         console.log('Entering placement mode');
         this.switchToSingleView();
         
@@ -65,7 +65,17 @@ export class PlacementMode {
         // Copy any existing template/background from game mode to placement mode
         this.copyGameStateToPlacementMode();
         
-        this.enableSpriteDragging(); // This will now find no sprites initially
+        // If we have a current template, recreate sprites from it
+        if (this.currentTemplate) {
+            try {
+                console.log('Recreating sprites from template in placement mode:', this.currentTemplate.name);
+                await this.createSpritesFromTemplate(this.currentTemplate);
+            } catch (error) {
+                console.warn('Failed to recreate sprites from template:', error);
+            }
+        }
+        
+        this.enableSpriteDragging(); // This will now find sprites
         this.showPlacementInterface();
         document.body.classList.add('placement-mode');
     }
@@ -736,7 +746,6 @@ export class PlacementMode {
         this.createTrashBin();
         
         placementPanel.style.display = 'block';
-        this.updateSpritePositions(); // Initialize positions
         this.updatePlacementInfo();
     }
     
