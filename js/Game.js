@@ -4,6 +4,7 @@ import { EditMode } from './components/EditMode.js';
 import { PlacementMode } from './components/PlacementMode.js';
 import { BackgroundLoader } from './utils/BackgroundLoader.js';
 import { TemplateManager } from './utils/TemplateManager.js';
+import { SpritePositioning } from './utils/SpritePositioning.js';
 import { getBoundingBoxesForBackground, getSpriteCountForBackground } from './config/BoundingBoxConfig.js';
 
 export class Game {
@@ -48,6 +49,10 @@ export class Game {
         
         document.addEventListener('requestBackgroundChange', (e) => {
             this.handleBackgroundChangeRequest(e.detail);
+        });
+        
+        document.addEventListener('requestGameModeRestore', (e) => {
+            this.handleGameModeRestore(e.detail);
         });
     }
     
@@ -224,36 +229,15 @@ export class Game {
             const { spriteSrc, x, y } = detail;
             
             try {
-                // Create the sprite element
-                const spriteElement = await this.spriteManager.createSpriteElement(spriteSrc);
-                
-                // Position it at the specified coordinates (background-relative)
-                const backgroundImg = document.getElementById('background-image');
-                if (backgroundImg) {
-                    const bgRect = backgroundImg.getBoundingClientRect();
-                    // Get the actual container where sprites will be placed (game-container)
-                    const spriteContainerRect = this.spriteManager.container.getBoundingClientRect();
-                    const relativeX = bgRect.left - spriteContainerRect.left;
-                    const relativeY = bgRect.top - spriteContainerRect.top;
-                    
-                    // Convert from background-relative to sprite-container-relative coordinates
-                    const containerX = relativeX + x;
-                    const containerY = relativeY + y;
-                    
-                    spriteElement.style.left = containerX + 'px';
-                    spriteElement.style.top = containerY + 'px';
-                }
-                
-                // Add to DOM and track it
-                this.spriteManager.container.appendChild(spriteElement);
-                this.spriteManager.activeSprites.push(spriteElement);
+                // Use centralized sprite creation system
+                const spriteElement = await this.spriteManager.createSpriteAtBackgroundPosition(spriteSrc, x, y);
                 
                 // If placement mode is active, enable dragging for the new sprite
                 if (this.placementMode.isActive) {
                     this.placementMode.refreshSpriteEventListeners();
                 }
                 
-                console.log(`Created sprite ${spriteSrc} at position ${x}, ${y}`);
+                console.log(`Created sprite ${spriteSrc} at background position (${x}, ${y})`);
             } catch (error) {
                 console.error(`Failed to create sprite ${spriteSrc}:`, error);
             }
@@ -286,6 +270,9 @@ export class Game {
     
     async loadTemplate(template) {
         console.log('Loading template:', template.name, 'with', template.sprites.length, 'sprites');
+        
+        // Store template reference
+        this.currentTemplate = template;
         
         try {
             // Load the background image - construct full path
@@ -326,32 +313,16 @@ export class Game {
             // Wait a moment for background to be properly positioned
             await new Promise(resolve => setTimeout(resolve, 200));
             
-            // Create sprites from template positions
+            // Create sprites from template positions using centralized system
             let successCount = 0;
             for (const spriteData of template.sprites) {
                 try {
-                    // Create the sprite element
-                    const spriteElement = await this.spriteManager.createSpriteElement(spriteData.src);
-                    
-                    // Position it at the template coordinates (background-relative)
-                    const backgroundImg = document.getElementById('background-image');
-                    if (backgroundImg) {
-                        const bgRect = backgroundImg.getBoundingClientRect();
-                        const containerRect = backgroundImg.parentElement.getBoundingClientRect();
-                        const relativeX = bgRect.left - containerRect.left;
-                        const relativeY = bgRect.top - containerRect.top;
-                        
-                        // Convert from background-relative to container-relative coordinates
-                        const containerX = relativeX + spriteData.x;
-                        const containerY = relativeY + spriteData.y;
-                        
-                        spriteElement.style.left = containerX + 'px';
-                        spriteElement.style.top = containerY + 'px';
-                    }
-                    
-                    // Add to DOM and track it
-                    this.spriteManager.container.appendChild(spriteElement);
-                    this.spriteManager.activeSprites.push(spriteElement);
+                    // Use centralized sprite creation system
+                    await this.spriteManager.createSpriteAtBackgroundPosition(
+                        spriteData.src, 
+                        spriteData.x, 
+                        spriteData.y
+                    );
                     successCount++;
                     
                 } catch (error) {
@@ -367,12 +338,19 @@ export class Game {
         }
     }
     
+    async handleGameModeRestore(detail) {
+        console.log('Base Game handling mode restore request', detail);
+        // Base game class doesn't need special handling for mode restore
+        // This is mainly handled by SpotTheDifferenceGame
+    }
+    
     getGameState() {
         return {
             isActive: this.isGameActive,
             score: this.scoreDisplay.getScore(),
             editMode: this.editMode.isActive,
-            placementMode: this.placementMode.isActive
+            placementMode: this.placementMode.isActive,
+            currentTemplate: this.currentTemplate
         };
     }
 }

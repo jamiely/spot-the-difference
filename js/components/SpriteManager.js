@@ -1,5 +1,6 @@
 import { AssetConfigLoader } from '../utils/AssetConfigLoader.js';
 import { SPRITE_CONFIG } from '../config/SpriteConfig.js';
+import { SpritePositioning } from '../utils/SpritePositioning.js';
 
 export class SpriteManager {
     constructor(containerId) {
@@ -103,18 +104,29 @@ export class SpriteManager {
     }
 
     positionSpriteOnBackground(sprite, backgroundImg, boundingBoxes = [], specificBoxIndex = null) {
-        // Get the actual rendered dimensions and position of the background image
-        const bgRect = backgroundImg.getBoundingClientRect();
-        const containerRect = this.container.getBoundingClientRect();
-        
-        // Calculate relative position within the container
-        const relativeLeft = bgRect.left - containerRect.left;
-        const relativeTop = bgRect.top - containerRect.top;
-        
         // Get actual sprite dimensions from the element styles
         const spriteWidth = parseInt(sprite.style.width) || SPRITE_CONFIG.TARGET_SIZE_PX;
         const spriteHeight = parseInt(sprite.style.height) || SPRITE_CONFIG.TARGET_SIZE_PX;
-        const maxAttempts = 50; // Maximum attempts to find non-colliding position
+        
+        // Create collision detector with current sprite positions
+        const collisionDetector = SpritePositioning.createCollisionDetector(
+            this.spritePositions, 
+            spriteWidth, 
+            spriteHeight
+        );
+        
+        // Get background context
+        const context = SpritePositioning.getActiveBackgroundContext();
+        if (!context.backgroundImg || !context.container) {
+            console.warn('Cannot position sprite - missing background or container context');
+            return;
+        }
+        
+        // Calculate positioning area
+        const bgRect = context.backgroundImg.getBoundingClientRect();
+        const containerRect = context.container.getBoundingClientRect();
+        const relativeLeft = bgRect.left - containerRect.left;
+        const relativeTop = bgRect.top - containerRect.top;
         
         let position = null;
         
@@ -124,82 +136,77 @@ export class SpriteManager {
                 boundingBoxes[specificBoxIndex] : 
                 boundingBoxes[Math.floor(Math.random() * boundingBoxes.length)];
             
-            // Try to find a non-colliding position within the bounding box
-            position = this.findNonCollidingPosition(
+            // Find non-colliding position within bounding box using centralized system
+            position = collisionDetector.findNonCollidingPosition(
                 relativeLeft + selectedBox.x,
                 relativeTop + selectedBox.y,
                 selectedBox.width,
-                selectedBox.height,
-                spriteWidth,
-                spriteHeight,
-                maxAttempts
+                selectedBox.height
             );
             
             console.log(`Positioned sprite in box ${specificBoxIndex || 'random'} at: ${position.x}, ${position.y} (attempts: ${position.attempts})`);
         } else {
-            // Try to find a non-colliding position on the full background
-            position = this.findNonCollidingPosition(
+            // Find non-colliding position on full background using centralized system
+            position = collisionDetector.findNonCollidingPosition(
                 relativeLeft,
                 relativeTop,
                 bgRect.width,
-                bgRect.height,
-                spriteWidth,
-                spriteHeight,
-                maxAttempts
+                bgRect.height
             );
             
             console.log(`Positioned sprite on full background at: ${position.x}, ${position.y} (attempts: ${position.attempts})`);
         }
         
-        // Apply the position to the sprite
+        // Apply position using centralized system
+        sprite.style.position = 'absolute';
         sprite.style.left = position.x + 'px';
         sprite.style.top = position.y + 'px';
         
-        // Store the position for future collision detection
+        // Store position for collision detection
+        collisionDetector.addPosition(position.x, position.y, spriteWidth, spriteHeight);
+    }
+    
+    /**
+     * Create a sprite at specific background-relative coordinates
+     * @param {string} spriteSrc - Sprite source filename
+     * @param {number} backgroundX - X coordinate relative to background
+     * @param {number} backgroundY - Y coordinate relative to background
+     * @returns {HTMLElement} Created sprite element
+     */
+    async createSpriteAtBackgroundPosition(spriteSrc, backgroundX, backgroundY) {
+        // Create sprite element with sizing
+        const sprite = await this.createSpriteElement(spriteSrc, [], null);
+        
+        // Position using centralized system
+        SpritePositioning.positionSpriteAtBackgroundCoords(sprite, backgroundX, backgroundY);
+        
+        // Track sprite
+        this.container.appendChild(sprite);
+        this.activeSprites.push(sprite);
+        
+        // Store position for collision detection
+        const spriteWidth = parseInt(sprite.style.width) || SPRITE_CONFIG.TARGET_SIZE_PX;
+        const spriteHeight = parseInt(sprite.style.height) || SPRITE_CONFIG.TARGET_SIZE_PX;
+        const containerX = parseInt(sprite.style.left) || 0;
+        const containerY = parseInt(sprite.style.top) || 0;
+        
         this.spritePositions.push({
-            x: position.x,
-            y: position.y,
+            x: containerX,
+            y: containerY,
             width: spriteWidth,
             height: spriteHeight
         });
+        
+        return sprite;
     }
     
-    findNonCollidingPosition(areaX, areaY, areaWidth, areaHeight, spriteWidth, spriteHeight, maxAttempts) {
-        const availableWidth = Math.max(1, areaWidth - spriteWidth);
-        const availableHeight = Math.max(1, areaHeight - spriteHeight);
-        
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            const x = areaX + Math.floor(Math.random() * availableWidth);
-            const y = areaY + Math.floor(Math.random() * availableHeight);
-            
-            // Check if this position collides with any existing sprites
-            if (!this.hasCollision(x, y, spriteWidth, spriteHeight)) {
-                return { x, y, attempts: attempt + 1 };
-            }
-        }
-        
-        // If we couldn't find a non-colliding position, use the last attempt
-        const x = areaX + Math.floor(Math.random() * availableWidth);
-        const y = areaY + Math.floor(Math.random() * availableHeight);
-        
-        console.warn('Could not find non-colliding position after', maxAttempts, 'attempts');
-        return { x, y, attempts: maxAttempts };
-    }
-    
-    hasCollision(x, y, width, height) {
-        const buffer = 5; // Small buffer to prevent sprites from being too close
-        
-        for (const existingSprite of this.spritePositions) {
-            // Check if rectangles overlap (with buffer)
-            if (x < existingSprite.x + existingSprite.width + buffer &&
-                x + width + buffer > existingSprite.x &&
-                y < existingSprite.y + existingSprite.height + buffer &&
-                y + height + buffer > existingSprite.y) {
-                return true; // Collision detected
-            }
-        }
-        
-        return false; // No collision
+    /**
+     * Get sprite position in background-relative coordinates
+     * @param {HTMLElement} sprite - Sprite element
+     * @returns {Object} { backgroundX, backgroundY, containerX, containerY }
+     */
+    getSpriteBackgroundPosition(sprite) {
+        return SpritePositioning.getSpritePosition(sprite);
     }
 
     async displayRandomSprites(count = 10) {

@@ -22,6 +22,7 @@ export class SpotTheDifferenceGame extends Game {
         console.log(`Using seed: ${this.seed}`);
         
         this.setupSpotTheDifferenceEventListeners();
+        this.setupModeTransitionListeners();
     }
     
     getSeedFromURL() {
@@ -389,5 +390,31 @@ export class SpotTheDifferenceGame extends Game {
     
     clearDifferenceMarkers() {
         document.querySelectorAll('.difference-marker').forEach(marker => marker.remove());
+    }
+    
+    setupModeTransitionListeners() {
+        // Listen for placement mode transitions
+        document.addEventListener('requestGameModeRestore', (e) => {
+            this.handleGameModeRestore(e.detail);
+        });
+    }
+    
+    async handleGameModeRestore(detail) {
+        console.log('Restoring game mode from placement mode', detail);
+        
+        if (this.isGameActive && this.currentTemplate) {
+            // Clear any existing sprites and markers
+            this.leftSpriteManager.clearSprites();
+            this.rightSpriteManager.clearSprites();
+            this.clearDifferenceMarkers();
+            
+            // Recreate the side-by-side game with current template
+            await this.createSpritesForBothSides(this.currentTemplate);
+            
+            // Regenerate differences (this ensures randomness is maintained)
+            this.generateDifferences();
+            
+            console.log('Game mode restored with template:', this.currentTemplate.name);
+        }
     }
 }

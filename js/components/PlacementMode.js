@@ -1,5 +1,6 @@
 import { SPRITE_CONFIG } from '../config/SpriteConfig.js';
 import { TemplateManager } from '../utils/TemplateManager.js';
+import { SpritePositioning } from '../utils/SpritePositioning.js';
 
 export class PlacementMode {
     constructor() {
@@ -57,14 +58,24 @@ export class PlacementMode {
     enterPlacementMode() {
         console.log('Entering placement mode');
         this.switchToSingleView();
-        this.clearAllSprites(); // Clear all sprites first
-        this.enableSpriteDragging(); // This will now find no sprites
+        
+        // Clear all sprites from all containers (including side-by-side game sprites)
+        this.clearAllSprites();
+        
+        // Copy any existing template/background from game mode to placement mode
+        this.copyGameStateToPlacementMode();
+        
+        this.enableSpriteDragging(); // This will now find no sprites initially
         this.showPlacementInterface();
         document.body.classList.add('placement-mode');
     }
     
     exitPlacementMode() {
         console.log('Exiting placement mode');
+        
+        // Store current placement state for potential restoration
+        this.storePlacementState();
+        
         this.switchToSideBySideView();
         this.disableSpriteDragging();
         this.hidePlacementInterface();
@@ -72,6 +83,9 @@ export class PlacementMode {
         this.stopKeyRepeat(); // Clear any active key repeat
         document.body.classList.remove('placement-mode');
         this.clearDragState();
+        
+        // Trigger game mode to regenerate sprites for side-by-side view
+        this.restoreGameMode();
     }
     
     enableSpriteDragging() {
@@ -339,25 +353,10 @@ export class PlacementMode {
         const absoluteRect = sprite.getBoundingClientRect();
         absolutePosEl.textContent = `Absolute: (${Math.round(absoluteRect.left)}, ${Math.round(absoluteRect.top)})`;
         
-        // Get container position (relative to container)
-        const containerLeft = parseInt(sprite.style.left) || 0;
-        const containerTop = parseInt(sprite.style.top) || 0;
-        containerPosEl.textContent = `Container: (${containerLeft}, ${containerTop})`;
-        
-        // Get background position (relative to background image)
-        const backgroundImg = document.getElementById('background-image');
-        if (backgroundImg) {
-            const imgRect = backgroundImg.getBoundingClientRect();
-            const containerRect = backgroundImg.parentElement.getBoundingClientRect();
-            const relativeX = imgRect.left - containerRect.left;
-            const relativeY = imgRect.top - containerRect.top;
-            
-            const backgroundX = containerLeft - relativeX;
-            const backgroundY = containerTop - relativeY;
-            backgroundPosEl.textContent = `Background: (${Math.round(backgroundX)}, ${Math.round(backgroundY)})`;
-        } else {
-            backgroundPosEl.textContent = 'Background: (no bg image)';
-        }
+        // Use centralized positioning system to get accurate positions
+        const position = SpritePositioning.getSpritePosition(sprite);
+        containerPosEl.textContent = `Container: (${Math.round(position.containerX)}, ${Math.round(position.containerY)})`;
+        backgroundPosEl.textContent = `Background: (${Math.round(position.backgroundX)}, ${Math.round(position.backgroundY)})`;
     }
     
     addSelectionIndicator(sprite) {
@@ -613,59 +612,41 @@ export class PlacementMode {
     
     updateSpritePositions() {
         const sprites = document.querySelectorAll('.game-sprite');
-        const backgroundImg = document.getElementById('background-image');
         
-        if (!backgroundImg) {
-            console.warn('Background image not found for position calculation');
+        // Use centralized positioning system to get debug info
+        const debugInfo = SpritePositioning.getDebugInfo();
+        if (!debugInfo.valid) {
+            console.warn('Cannot update sprite positions:', debugInfo.error);
             return;
         }
         
-        const imgRect = backgroundImg.getBoundingClientRect();
-        const containerRect = backgroundImg.parentElement.getBoundingClientRect();
-        const relativeX = imgRect.left - containerRect.left;
-        const relativeY = imgRect.top - containerRect.top;
-        
         if (sprites.length > 0) {
-            console.log(`Saving: Background image: ${imgRect.width}x${imgRect.height} at (${imgRect.left}, ${imgRect.top})`);
-            console.log(`Saving: Container: ${containerRect.width}x${containerRect.height} at (${containerRect.left}, ${containerRect.top})`);
-            console.log(`Saving: Calculated relative offset: (${relativeX}, ${relativeY})`);
+            console.log(`Saving: Background image: ${debugInfo.backgroundImage.rect.width}x${debugInfo.backgroundImage.rect.height} at (${debugInfo.backgroundImage.rect.left}, ${debugInfo.backgroundImage.rect.top})`);
+            console.log(`Saving: Container: ${debugInfo.container.rect.width}x${debugInfo.container.rect.height} at (${debugInfo.container.rect.left}, ${debugInfo.container.rect.top})`);
+            console.log(`Saving: Calculated relative offset: (${debugInfo.offset.x}, ${debugInfo.offset.y})`);
         }
         
         this.spritePositions = Array.from(sprites).map((sprite, index) => {
-            // Use style.left/top if available (more accurate for recently moved sprites)
-            // Otherwise fall back to getBoundingClientRect()
-            let containerX, containerY;
+            // Use centralized positioning system to get sprite position
+            const position = SpritePositioning.getSpritePosition(sprite);
             
-            if (sprite.style.left && sprite.style.top) {
-                // Use the CSS position values directly
-                containerX = parseInt(sprite.style.left) || 0;
-                containerY = parseInt(sprite.style.top) || 0;
-            } else {
-                // Fall back to getBoundingClientRect for sprites without explicit positioning
-                const spriteRect = sprite.getBoundingClientRect();
-                containerX = spriteRect.left - containerRect.left;
-                containerY = spriteRect.top - containerRect.top;
-            }
-            
-            // Convert to background-relative coordinates
-            const backgroundX = containerX - relativeX;
-            const backgroundY = containerY - relativeY;
+            console.log(`updateSpritePositions ${position.backgroundX}, ${position.backgroundY}`);
             
             if (index === 0) { // Debug first sprite only
-                console.log(`[${new Date().toISOString()}] Saving ${sprite.src.split('/').pop()}: Container(${containerX}, ${containerY}) -> JSON(${backgroundX}, ${backgroundY}), RelativeOffset(${relativeX}, ${relativeY})`);
+                console.log(`[${new Date().toISOString()}] Saving ${sprite.src.split('/').pop()}: Container(${position.containerX}, ${position.containerY}) -> JSON(${position.backgroundX}, ${position.backgroundY}), RelativeOffset(${debugInfo.offset.x}, ${debugInfo.offset.y})`);
             }
             
             // Calculate actual sprite size based on container
             const actualSpriteSize = SPRITE_CONFIG.getSizeInPixels(
-                containerRect.width, 
-                containerRect.height
+                debugInfo.container.rect.width, 
+                debugInfo.container.rect.height
             );
             
             return {
                 id: `sprite_${index}`,
                 src: sprite.src.split('/').pop(), // Get filename only
-                x: Math.round(backgroundX),
-                y: Math.round(backgroundY),
+                x: Math.round(position.backgroundX),
+                y: Math.round(position.backgroundY),
                 width: actualSpriteSize,
                 height: actualSpriteSize
             };
@@ -878,6 +859,8 @@ export class PlacementMode {
                 // Get current sprite position (container-relative)
                 const currentLeft = parseInt(matchingSprite.style.left) || 0;
                 const currentTop = parseInt(matchingSprite.style.top) || 0;
+
+                console.log(`JAL: left=${currentLeft} top=${currentTop}`);
                 
                 // Convert current position to background-relative for comparison
                 const currentBackgroundX = currentLeft - relativeX;
@@ -886,6 +869,8 @@ export class PlacementMode {
                 // Calculate where the sprite should be in container coordinates
                 const targetContainerX = relativeX + position.x;
                 const targetContainerY = relativeY + position.y;
+
+                console.log(`JAL: relative=${relativeX},${relativeY} position=${position.x},${position.y} targetX=${targetContainerX} targetY=${targetContainerY}`)
                 
                 console.log(`Loading ${position.src}: Current container(${currentLeft}, ${currentTop}) = background(${currentBackgroundX}, ${currentBackgroundY}), JSON(${position.x}, ${position.y}), Target container(${targetContainerX}, ${targetContainerY}), RelativeOffset(${relativeX}, ${relativeY})`);
                 
@@ -1518,5 +1503,38 @@ export class PlacementMode {
             legacyBackground.style.height = leftBackground.style.height;
             legacyBackground.style.borderRadius = leftBackground.style.borderRadius;
         }
+    }
+    
+    copyGameStateToPlacementMode() {
+        // Copy background from game mode to placement mode
+        this.copyBackgroundToLegacyBoard();
+        
+        // If there's an active template in the global game object, reference it
+        if (window.game && window.game.currentTemplate) {
+            this.currentTemplate = window.game.currentTemplate;
+            console.log('Copied template reference to placement mode:', this.currentTemplate.name);
+        }
+    }
+    
+    storePlacementState() {
+        // Update sprite positions before exiting
+        this.updateSpritePositions();
+        
+        // Store the current sprite state for potential restoration
+        const currentPositions = this.getSpritePositions();
+        if (currentPositions.length > 0) {
+            console.log(`Storing placement state: ${currentPositions.length} sprite positions`);
+            // Could be stored in localStorage or passed to game instance
+            sessionStorage.setItem('placementModeSprites', JSON.stringify(currentPositions));
+        }
+    }
+    
+    restoreGameMode() {
+        // Trigger event to let the game know we're returning to game mode
+        // The game can then decide how to handle sprite regeneration
+        this.dispatchEvent('requestGameModeRestore', {
+            fromPlacementMode: true,
+            spritePositions: this.spritePositions
+        });
     }
 }

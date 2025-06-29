@@ -16,11 +16,9 @@
             <div class="game-boards">
                 <div class="game-board" id="game-board-left">
                     <img id="background-image-left" class="background-image" alt="Game background left" style="display: none;">
-                    <div class="image-label">Left Side</div>
                 </div>
                 <div class="game-board" id="game-board-right">
                     <img id="background-image-right" class="background-image" alt="Game background right" style="display: none;">
-                    <div class="image-label">Right Side</div>
                 </div>
             </div>
             
@@ -40,6 +38,106 @@
         </div>
     </main>
 
+    <!-- Debug Panel -->
+    <div id="debug-panel" style="position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; z-index: 2000;">
+        <div><strong>Star Sprite Debug (200ms updates)</strong></div>
+        <div id="debug-mode">Mode: Unknown</div>
+        <div id="debug-star-left">Left Star: Not found</div>
+        <div id="debug-star-right">Right Star: Not found</div>
+        <div id="debug-star-single">Single Star: Not found</div>
+    </div>
+
     <script type="module" src="js/main.js"></script>
+    <script>
+        // Debug script to monitor star sprite positions
+        function findStarSprite(container) {
+            if (!container) return null;
+            const sprites = container.querySelectorAll('.game-sprite');
+            for (const sprite of sprites) {
+                if (sprite.src && sprite.src.includes('/gold_star.png')) {
+                    return sprite;
+                }
+            }
+            return null;
+        }
+
+        function getRelativePosition(sprite, backgroundImg) {
+            if (!sprite || !backgroundImg) return null;
+            
+            const spriteRect = sprite.getBoundingClientRect();
+            const bgRect = backgroundImg.getBoundingClientRect();
+            
+            // Calculate position relative to background image top-left corner
+            const relativeX = spriteRect.left - bgRect.left;
+            const relativeY = spriteRect.top - bgRect.top;
+            
+            return { x: Math.round(relativeX), y: Math.round(relativeY) };
+        }
+
+        function updateDebug() {
+            const debugMode = document.getElementById('debug-mode');
+            const debugStarLeft = document.getElementById('debug-star-left');
+            const debugStarRight = document.getElementById('debug-star-right');
+            const debugStarSingle = document.getElementById('debug-star-single');
+            
+            // Determine current mode
+            const sideBySideVisible = document.querySelector('.game-boards').style.display !== 'none';
+            const legacyVisible = document.getElementById('legacy-game-board').style.display !== 'none';
+            const placementActive = document.body.classList.contains('placement-mode');
+            
+            let mode = 'Unknown';
+            if (placementActive) {
+                mode = 'Placement Mode';
+            } else if (sideBySideVisible) {
+                mode = 'Game Mode (Side-by-Side)';
+            } else if (legacyVisible) {
+                mode = 'Legacy Mode';
+            }
+            
+            debugMode.textContent = `Mode: ${mode}`;
+            
+            // Check for stars in game mode (side-by-side)
+            if (sideBySideVisible) {
+                const leftBoard = document.getElementById('game-board-left');
+                const rightBoard = document.getElementById('game-board-right');
+                const leftBg = document.getElementById('background-image-left');
+                const rightBg = document.getElementById('background-image-right');
+                
+                const leftStar = findStarSprite(leftBoard);
+                const rightStar = findStarSprite(rightBoard);
+                
+                const leftPos = getRelativePosition(leftStar, leftBg);
+                const rightPos = getRelativePosition(rightStar, rightBg);
+                
+                debugStarLeft.textContent = leftPos ? 
+                    `Left Star: (${leftPos.x}, ${leftPos.y})` : 'Left Star: Not found';
+                debugStarRight.textContent = rightPos ? 
+                    `Right Star: (${rightPos.x}, ${rightPos.y})` : 'Right Star: Not found';
+                debugStarSingle.textContent = 'Single Star: N/A (Game Mode)';
+            }
+            
+            // Check for star in placement mode (single view)
+            if (placementActive || legacyVisible) {
+                const legacyBoard = document.getElementById('legacy-game-board');
+                const gameContainer = document.getElementById('game-container');
+                const singleBg = document.getElementById('background-image');
+                
+                // Look for star in legacy board or main container
+                const singleStar = findStarSprite(legacyBoard) || findStarSprite(gameContainer);
+                const singlePos = getRelativePosition(singleStar, singleBg);
+                
+                debugStarSingle.textContent = singlePos ? 
+                    `Single Star: (${singlePos.x}, ${singlePos.y})` : 'Single Star: Not found';
+                debugStarLeft.textContent = 'Left Star: N/A (Single Mode)';
+                debugStarRight.textContent = 'Right Star: N/A (Single Mode)';
+            }
+        }
+        
+        // Update debug info every 200ms
+        setInterval(updateDebug, 200);
+        
+        // Initial update
+        updateDebug();
+    </script>
 </body>
 </html>
