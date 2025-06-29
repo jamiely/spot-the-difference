@@ -1,5 +1,6 @@
 import { Game } from './Game.js';
 import { SpriteManager } from './components/SpriteManager.js';
+import { SPRITE_CONFIG } from './config/SpriteConfig.js';
 
 export class SpotTheDifferenceGame extends Game {
     constructor() {
@@ -177,8 +178,10 @@ export class SpotTheDifferenceGame extends Game {
                 
                 // Store reference to original sprite data
                 spriteElement.dataset.spriteId = spriteData.id;
-                spriteElement.dataset.centerX = spriteData.x + (spriteData.width || 155) / 2;
-                spriteElement.dataset.centerY = spriteData.y + (spriteData.height || 155) / 2;
+                // Use actual sprite size for center calculation
+                const spriteSize = SPRITE_CONFIG.TARGET_SIZE_PX;
+                spriteElement.dataset.centerX = spriteData.x + spriteSize / 2;
+                spriteElement.dataset.centerY = spriteData.y + spriteSize / 2;
             } catch (error) {
                 console.warn(`Could not create right sprite ${spriteData.src}:`, error);
             }

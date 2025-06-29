@@ -954,8 +954,11 @@ export class PlacementMode {
     }
     
     clearAllPositions() {
-        // This would require regenerating sprites or resetting to default positions
-        // For now, just clear the JSON
+        // Clear all sprites from DOM
+        const sprites = document.querySelectorAll('.game-sprite');
+        sprites.forEach(sprite => sprite.remove());
+        
+        // Clear the JSON positions array
         this.spritePositions = [];
         this.updateJsonExport();
         this.showFeedback('clear-positions', 'Positions cleared', 'success');
@@ -1046,6 +1049,7 @@ export class PlacementMode {
             if (currentSprites.length >= expectedSprites || checkCount >= maxChecks) {
                 console.log(`Sprites ready! Refreshing event listeners for ${currentSprites.length} sprites`);
                 this.refreshSpriteEventListeners();
+                this.updateSpritePositions(); // Update JSON after sprites are placed
                 return;
             }
             
@@ -1101,10 +1105,10 @@ export class PlacementMode {
         // Clear existing sprites first
         this.clearAllSprites();
         
-        // Get the background image and container for positioning
-        const backgroundImg = document.getElementById('background-image');
+        // Get the unified background image and container for positioning
+        const backgroundImg = document.getElementById('background-image-left');
         if (!backgroundImg) {
-            throw new Error('Background image not found');
+            throw new Error('Unified background image not found');
         }
         
         // Create sprites for each template sprite
@@ -1125,11 +1129,15 @@ export class PlacementMode {
             }
         }
         
+        // Wait a moment for sprites to be created, then update positions
+        await new Promise(resolve => setTimeout(resolve, 500));
+        this.updateSpritePositions();
+        
         console.log(`Created ${template.sprites.length} sprites from template`);
     }
     
     resetOutsideSprites() {
-        const backgroundImg = document.getElementById('background-image');
+        const backgroundImg = document.getElementById('background-image-left');
         if (!backgroundImg) {
             this.showFeedback('reset-outside-sprites', 'No background image found', 'error');
             return;
@@ -1295,6 +1303,9 @@ export class PlacementMode {
             let message = `Loaded template: ${template.name}`;
             if (result.created > 0) message += `, created ${result.created}`;
             if (result.removed > 0) message += `, removed ${result.removed}`;
+            
+            // Refresh sprite event listeners after template loading
+            this.refreshSpriteEventListeners();
             
             this.showFeedback('load-template', message, 'success');
             
