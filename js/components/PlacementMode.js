@@ -77,6 +77,10 @@ export class PlacementMode {
         
         this.enableSpriteDragging(); // This will now find sprites
         this.showPlacementInterface();
+        
+        // Update sprite positions now that the interface (including JSON textarea) exists
+        this.updateSpritePositions();
+        
         document.body.classList.add('placement-mode');
     }
     
@@ -1138,9 +1142,8 @@ export class PlacementMode {
             }
         }
         
-        // Wait a moment for sprites to be created, then update positions
+        // Wait a moment for sprites to be created
         await new Promise(resolve => setTimeout(resolve, 500));
-        this.updateSpritePositions();
         
         console.log(`Created ${template.sprites.length} sprites from template`);
     }
