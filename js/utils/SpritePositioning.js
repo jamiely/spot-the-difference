@@ -20,7 +20,8 @@ export class SpritePositioning {
         if (isPlacementMode || isLegacyVisible) {
             // Placement mode - use legacy single board
             const backgroundImg = document.getElementById('background-image');
-            const container = backgroundImg ? backgroundImg.parentElement : document.getElementById('game-container');
+            // In placement mode, sprites are always placed in game-container, not the background's parent
+            const container = document.getElementById('game-container');
             return {
                 backgroundImg,
                 container,
