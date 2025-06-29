@@ -185,11 +185,20 @@ export class PlacementMode {
             placementPanel.style.pointerEvents = 'none';
         }
         
+        console.log('=== DRAG START ===');
         console.log('Started dragging sprite:', this.draggedSprite.src);
+        console.log('Mouse position:', e.clientX, e.clientY);
+        console.log('Sprite rect:', spriteRect);
+        console.log('Drag offset:', this.dragOffset);
+        console.log('draggedSprite set to:', this.draggedSprite);
     }
     
     handleMouseMove(e) {
-        if (!this.isActive || !this.draggedSprite) return;
+        if (!this.isActive || !this.draggedSprite) {
+            if (!this.isActive) console.log('Mouse move ignored: placement mode not active');
+            if (!this.draggedSprite) console.log('Mouse move ignored: no draggedSprite');
+            return;
+        }
         
         e.preventDefault();
         
@@ -223,16 +232,35 @@ export class PlacementMode {
             
             if (isOverTrash) {
                 trashBin.classList.add('trash-hover');
+                console.log('=== OVER TRASH ===');
+                console.log('Mouse over trash bin at:', e.clientX, e.clientY);
+                console.log('Trash rect:', trashRect);
+                console.log('draggedSprite still exists:', !!this.draggedSprite);
             } else {
                 trashBin.classList.remove('trash-hover');
             }
+        } else {
+            console.log('WARNING: trash bin not found during drag');
         }
         
-        console.log(`Moving sprite to: ${newX}, ${newY}`);
+        // Reduced logging for mouse move to avoid spam - only log every 10th move
+        if (this.moveCounter === undefined) this.moveCounter = 0;
+        this.moveCounter++;
+        if (this.moveCounter % 10 === 0) {
+            console.log(`Moving sprite to: ${newX}, ${newY}, draggedSprite still valid:`, !!this.draggedSprite);
+        }
     }
     
     handleMouseUp(e) {
-        if (!this.isActive || !this.draggedSprite) return;
+        console.log('=== MOUSE UP ===');
+        console.log('Mouse up at:', e.clientX, e.clientY);
+        console.log('Placement mode active:', this.isActive);
+        console.log('draggedSprite exists:', !!this.draggedSprite);
+        
+        if (!this.isActive || !this.draggedSprite) {
+            console.log('Mouse up ignored - conditions not met');
+            return;
+        }
         
         e.preventDefault();
         
@@ -240,15 +268,30 @@ export class PlacementMode {
         const trashBin = document.getElementById('trash-bin');
         const trashRect = trashBin ? trashBin.getBoundingClientRect() : null;
         
-        if (trashRect && 
+        console.log('Trash bin found:', !!trashBin);
+        console.log('Trash rect:', trashRect);
+        
+        const isOverTrash = trashRect && 
             e.clientX >= trashRect.left && e.clientX <= trashRect.right &&
-            e.clientY >= trashRect.top && e.clientY <= trashRect.bottom) {
+            e.clientY >= trashRect.top && e.clientY <= trashRect.bottom;
             
-            // Handle trash drop
-            this.handleTrashDrop(e);
+        console.log('Is over trash:', isOverTrash);
+        
+        if (isOverTrash) {
+            console.log('=== CALLING TRASH DROP ===');
+            console.log('About to call handleTrashDrop with draggedSprite:', this.draggedSprite.src);
+            
+            // Handle trash drop - create a proper event for the trash bin
+            const trashEvent = new Event('drop');
+            Object.defineProperty(trashEvent, 'currentTarget', {
+                value: trashBin,
+                writable: false
+            });
+            this.handleTrashDrop(trashEvent);
             return;
         }
         
+        console.log('=== NORMAL DROP ===');
         // Normal drop - position the sprite
         const container = document.getElementById('game-board-left');
         const containerRect = container.getBoundingClientRect();
@@ -286,6 +329,9 @@ export class PlacementMode {
     }
     
     clearDragState() {
+        console.log('=== CLEARING DRAG STATE ===');
+        console.log('Current draggedSprite before clear:', this.draggedSprite ? this.draggedSprite.src : 'null');
+        
         // Re-enable pointer events on placement panel after drag
         const placementPanel = document.getElementById('placement-panel');
         if (placementPanel) {
@@ -294,6 +340,8 @@ export class PlacementMode {
         
         this.draggedSprite = null;
         this.dragOffset = { x: 0, y: 0 };
+        
+        console.log('Drag state cleared - draggedSprite now null');
     }
     
     resetAllSpriteZIndex() {
@@ -709,6 +757,7 @@ export class PlacementMode {
                     <button id="copy-positions">Copy JSON</button>
                     <button id="load-positions">Load JSON</button>
                     <button id="clear-positions">Clear All</button>
+                    <button id="test-drag-trash">Test Drag to Trash</button>
                 </div>
             `;
             document.getElementById('game-container').appendChild(placementPanel);
@@ -723,6 +772,10 @@ export class PlacementMode {
             
             document.getElementById('clear-positions').addEventListener('click', () => {
                 this.clearAllPositions();
+            });
+            
+            document.getElementById('test-drag-trash').addEventListener('click', () => {
+                this.testDragToTrash();
             });
             
             document.getElementById('place-all-sprites').addEventListener('click', () => {
@@ -1009,20 +1062,56 @@ export class PlacementMode {
     }
     
     handleTrashDrop(e) {
+        console.log('=== HANDLE TRASH DROP CALLED ===');
+        console.log('Event target:', e.currentTarget);
+        console.log('Event type:', e.type);
+        console.log('draggedSprite at start of handleTrashDrop:', this.draggedSprite);
+        console.log('typeof draggedSprite:', typeof this.draggedSprite);
+        console.log('draggedSprite === null:', this.draggedSprite === null);
+        console.log('draggedSprite === undefined:', this.draggedSprite === undefined);
+        console.log('Boolean(draggedSprite):', Boolean(this.draggedSprite));
+        console.log('!!draggedSprite:', !!this.draggedSprite);
+        
         e.preventDefault();
         e.currentTarget.classList.remove('trash-hover');
         
         if (this.draggedSprite) {
-            console.log('Deleting sprite:', this.draggedSprite.src);
+            console.log('=== INSIDE IF STATEMENT ===');
+            console.log('SUCCESS: Deleting sprite:', this.draggedSprite.src);
+            console.log('Sprite element:', this.draggedSprite);
+            console.log('Sprite parent before removal:', this.draggedSprite.parentElement);
+            
+            // Store reference before removal
+            const spriteToDelete = this.draggedSprite;
+            const spriteSrc = spriteToDelete.src;
+            
+            // Remove selection indicator if this sprite is selected
+            if (spriteToDelete === this.selectedSprite) {
+                console.log('Removing selection indicator for deleted sprite');
+                this.removeSelectionIndicator(spriteToDelete);
+                this.selectedSprite = null;
+            }
             
             // Remove sprite from DOM
-            this.draggedSprite.remove();
+            console.log('Removing sprite from DOM...');
+            spriteToDelete.remove();
+            console.log('Sprite removed from DOM');
             
-            // Update positions and clear drag state
-            this.updateSpritePositions();
+            // Clear drag state
             this.clearDragState();
             
+            // Update positions after removal
+            console.log('Updating sprite positions after deletion...');
+            this.updateSpritePositions();
+            
             this.showTrashFeedback('Sprite deleted');
+            console.log('TRASH DROP COMPLETED SUCCESSFULLY for:', spriteSrc);
+        } else {
+            console.log('ERROR: No draggedSprite to delete');
+            console.log('Current drag state:');
+            console.log('  this.draggedSprite:', this.draggedSprite);
+            console.log('  this.isActive:', this.isActive);
+            console.log('  this.selectedSprite:', this.selectedSprite);
         }
     }
     
@@ -1570,5 +1659,94 @@ export class PlacementMode {
             fromPlacementMode: true,
             spritePositions: this.spritePositions
         });
+    }
+    
+    // Test function for debugging drag-to-trash
+    testDragToTrash() {
+        console.log('=== TESTING DRAG TO TRASH ===');
+        
+        // Find first sprite and trash bin
+        const sprite = document.querySelector('.game-sprite');
+        const trashBin = document.getElementById('trash-bin');
+        
+        if (!sprite || !trashBin) {
+            console.log('ERROR: Missing sprite or trash bin');
+            console.log('sprite:', sprite);
+            console.log('trashBin:', trashBin);
+            return;
+        }
+        
+        console.log('Found sprite:', sprite.src);
+        console.log('Found trash bin:', trashBin);
+        
+        // Get positions
+        const spriteRect = sprite.getBoundingClientRect();
+        const trashRect = trashBin.getBoundingClientRect();
+        
+        console.log('Sprite rect:', spriteRect);
+        console.log('Trash rect:', trashRect);
+        
+        // Simulate mousedown on sprite
+        const startX = spriteRect.left + spriteRect.width / 2;
+        const startY = spriteRect.top + spriteRect.height / 2;
+        
+        const endX = trashRect.left + trashRect.width / 2;
+        const endY = trashRect.top + trashRect.height / 2;
+        
+        console.log('Start coordinates:', startX, startY);
+        console.log('End coordinates:', endX, endY);
+        
+        // Create and dispatch mousedown event
+        const mouseDownEvent = new MouseEvent('mousedown', {
+            clientX: startX,
+            clientY: startY,
+            button: 0,
+            bubbles: true,
+            cancelable: true
+        });
+        
+        console.log('Dispatching mousedown on sprite...');
+        sprite.dispatchEvent(mouseDownEvent);
+        
+        // Wait a bit, then simulate mousemove over trash
+        setTimeout(() => {
+            const mouseMoveEvent = new MouseEvent('mousemove', {
+                clientX: endX,
+                clientY: endY,
+                button: 0,
+                bubbles: true,
+                cancelable: true
+            });
+            
+            console.log('Dispatching mousemove over trash...');
+            document.dispatchEvent(mouseMoveEvent);
+            
+            // Wait a bit more, then simulate mouseup over trash
+            setTimeout(() => {
+                const mouseUpEvent = new MouseEvent('mouseup', {
+                    clientX: endX,
+                    clientY: endY,
+                    button: 0,
+                    bubbles: true,
+                    cancelable: true
+                });
+                
+                console.log('Dispatching mouseup over trash...');
+                document.dispatchEvent(mouseUpEvent);
+                
+                // Check if sprite was deleted
+                setTimeout(() => {
+                    const remainingSprites = document.querySelectorAll('.game-sprite');
+                    console.log('Sprites remaining after test:', remainingSprites.length);
+                    
+                    if (remainingSprites.length < 29) {
+                        console.log('SUCCESS: Sprite was deleted!');
+                    } else {
+                        console.log('FAILURE: Sprite was not deleted');
+                    }
+                }, 100);
+                
+            }, 100);
+        }, 100);
     }
 }
