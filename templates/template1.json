@@ -5,360 +5,360 @@
     {
       "id": "sprite_0",
       "src": "orange_ruler.png",
-      "x": 39,
-      "y": 544,
+      "x": 7,
+      "y": 512,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_1",
       "src": "flashlight_keychain.png",
-      "x": 115,
-      "y": 589,
+      "x": 83,
+      "y": 557,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_2",
       "src": "jump_rope.png",
-      "x": 339,
-      "y": 557,
+      "x": 307,
+      "y": 525,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_3",
       "src": "flower_keychain.png",
-      "x": 84,
-      "y": -106,
+      "x": 52,
+      "y": -138,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_4",
       "src": "art_scissors.png",
-      "x": 204,
-      "y": -128,
+      "x": 172,
+      "y": -160,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_5",
       "src": "green_lunchbox.png",
-      "x": 324,
-      "y": -131,
+      "x": 292,
+      "y": -163,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_6",
       "src": "green_frog_toy.png",
-      "x": 30,
-      "y": -113,
+      "x": -2,
+      "y": -145,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_7",
       "src": "paper_snowflake.png",
-      "x": 150,
-      "y": -108,
+      "x": 118,
+      "y": -140,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_8",
       "src": "kids_watch.png",
-      "x": 270,
-      "y": -148,
+      "x": 238,
+      "y": -180,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_9",
       "src": "open_storybook.png",
-      "x": -24,
-      "y": -150,
+      "x": -56,
+      "y": -182,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_10",
       "src": "orange_lollipop.png",
-      "x": 96,
-      "y": -110,
+      "x": 64,
+      "y": -142,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_11",
       "src": "striped_sock.png",
-      "x": 216,
-      "y": -143,
+      "x": 184,
+      "y": -175,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_12",
       "src": "star_wand.png",
-      "x": 398,
-      "y": 243,
+      "x": 366,
+      "y": 211,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_13",
       "src": "tape_dispenser.png",
-      "x": 336,
-      "y": -92,
+      "x": 304,
+      "y": -124,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_14",
       "src": "winter_mittens.png",
-      "x": 42,
-      "y": -99,
+      "x": 10,
+      "y": -131,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_15",
       "src": "toy_dinosaur.png",
-      "x": 286,
-      "y": 49,
+      "x": 254,
+      "y": 17,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_16",
       "src": "gold_star.png",
-      "x": 370,
-      "y": 63,
+      "x": 338,
+      "y": 31,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_17",
       "src": "crumpled_paper.png",
-      "x": 374,
-      "y": 207,
+      "x": 342,
+      "y": 175,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_18",
       "src": "homework_paper.png",
-      "x": 281,
-      "y": 180,
+      "x": 249,
+      "y": 148,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_19",
       "src": "rain_boot.png",
-      "x": 250,
-      "y": 179,
+      "x": 218,
+      "y": 147,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_20",
       "src": "pencil_case.png",
-      "x": 201,
-      "y": 208,
+      "x": 169,
+      "y": 176,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_21",
       "src": "coin_purse.png",
-      "x": 139,
-      "y": 198,
+      "x": 107,
+      "y": 166,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_22",
       "src": "cat_drawing.png",
-      "x": 48,
-      "y": 173,
+      "x": 16,
+      "y": 141,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_23",
       "src": "permission_slip.png",
-      "x": 299,
-      "y": 309,
+      "x": 267,
+      "y": 277,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_24",
       "src": "school_dance_flyer.png",
-      "x": 280,
-      "y": 313,
+      "x": 248,
+      "y": 281,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_25",
       "src": "lunch_menu.png",
-      "x": 265,
-      "y": 323,
+      "x": 233,
+      "y": 291,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_26",
       "src": "paintbrush.png",
-      "x": 238,
-      "y": 296,
+      "x": 206,
+      "y": 264,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_27",
       "src": "winter_mitten.png",
-      "x": 214,
-      "y": 304,
+      "x": 182,
+      "y": 272,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_28",
       "src": "watercolor_paint_set.png",
-      "x": 139,
-      "y": 309,
+      "x": 107,
+      "y": 277,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_29",
       "src": "orange_crayon.png",
-      "x": 388,
-      "y": 413,
+      "x": 356,
+      "y": 381,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_30",
       "src": "lunch_bag_orange.png",
-      "x": 396,
-      "y": 600,
+      "x": 364,
+      "y": 568,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_31",
       "src": "spilled_paint_cup.png",
-      "x": 286,
-      "y": 564,
+      "x": 254,
+      "y": 532,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_32",
       "src": "spilled_glue.png",
-      "x": 279,
-      "y": 584,
+      "x": 247,
+      "y": 552,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_33",
       "src": "orange_sock.png",
-      "x": 217,
-      "y": 578,
+      "x": 185,
+      "y": 546,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_34",
       "src": "spilled_juice_box.png",
-      "x": 151,
-      "y": 578,
+      "x": 119,
+      "y": 546,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_35",
       "src": "pink_backpack.png",
-      "x": 32,
-      "y": 518,
+      "x": 0,
+      "y": 486,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_36",
       "src": "covid_lanyard.png",
-      "x": 108,
-      "y": 564,
+      "x": 76,
+      "y": 532,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_37",
       "src": "yellow_pencil.png",
-      "x": 44,
-      "y": 592,
+      "x": 12,
+      "y": 560,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_38",
       "src": "purple_glasses.png",
-      "x": 350,
-      "y": 518,
+      "x": 318,
+      "y": 486,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_39",
       "src": "glue_stick.png",
-      "x": 345,
-      "y": 456,
+      "x": 313,
+      "y": 424,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_40",
       "src": "green_robot.png",
-      "x": 285,
-      "y": 390,
+      "x": 253,
+      "y": 358,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_41",
       "src": "four_leaf_clover.png",
-      "x": 303,
-      "y": 427,
+      "x": 271,
+      "y": 395,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_42",
       "src": "name_tag.png",
-      "x": 241,
-      "y": 464,
+      "x": 209,
+      "y": 432,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_43",
       "src": "leaf_wreath.png",
-      "x": 170,
-      "y": 500,
+      "x": 138,
+      "y": 468,
       "width": 155,
       "height": 155
     },
     {
       "id": "sprite_44",
       "src": "paper_airplane.png",
-      "x": 192,
-      "y": 447,
+      "x": 160,
+      "y": 415,
       "width": 155,
       "height": 155
     }
