@@ -10,7 +10,7 @@ import { getBoundingBoxesForBackground, getSpriteCountForBackground } from './co
 export class Game {
     constructor() {
         this.scoreDisplay = new ScoreDisplay('score-count');
-        this.spriteManager = new SpriteManager('game-container');
+        this.spriteManager = new SpriteManager('game-board-left');
         this.editMode = new EditMode();
         this.placementMode = new PlacementMode();
         this.backgroundLoader = new BackgroundLoader();

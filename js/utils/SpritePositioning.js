@@ -9,43 +9,27 @@ export class SpritePositioning {
      * @returns {Object} { backgroundImg, container, mode }
      */
     static getActiveBackgroundContext() {
-        // Check if we're in side-by-side mode (game mode)
-        const gameBoardsContainer = document.querySelector('.game-boards');
-        const legacyBoard = document.getElementById('legacy-game-board');
+        // Unified approach: both game mode and placement mode use the same left-side structure
+        const backgroundImg = document.getElementById('background-image-left');
+        const container = backgroundImg ? backgroundImg.parentElement : document.getElementById('game-board-left');
         
-        const isSideBySideVisible = gameBoardsContainer && gameBoardsContainer.style.display !== 'none';
-        const isLegacyVisible = legacyBoard && legacyBoard.style.display !== 'none';
-        const isPlacementMode = document.body.classList.contains('placement-mode');
-        
-        if (isPlacementMode || isLegacyVisible) {
-            // Placement mode - use legacy single board
-            const backgroundImg = document.getElementById('background-image');
-            // In placement mode, sprites are always placed in game-container, not the background's parent
-            const container = document.getElementById('game-container');
+        if (!backgroundImg || !container) {
+            // Fallback to game container if left side isn't available
+            const fallbackBg = document.getElementById('background-image');
+            const fallbackContainer = document.getElementById('game-container');
             return {
-                backgroundImg,
-                container,
-                mode: 'placement'
-            };
-        } else if (isSideBySideVisible) {
-            // Game mode - use left side as reference (both sides should be identical)
-            const backgroundImg = document.getElementById('background-image-left');
-            const container = backgroundImg ? backgroundImg.parentElement : document.getElementById('game-board-left');
-            return {
-                backgroundImg,
-                container,
-                mode: 'game'
-            };
-        } else {
-            // Fallback to game container
-            const container = document.getElementById('game-container');
-            const backgroundImg = document.getElementById('background-image') || document.getElementById('background-image-left');
-            return {
-                backgroundImg,
-                container,
+                backgroundImg: fallbackBg,
+                container: fallbackContainer,
                 mode: 'fallback'
             };
         }
+        
+        const isPlacementMode = document.body.classList.contains('placement-mode');
+        return {
+            backgroundImg,
+            container,
+            mode: isPlacementMode ? 'placement' : 'game'
+        };
     }
     
     /**

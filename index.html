@@ -116,20 +116,32 @@
                 debugStarSingle.textContent = 'Single Star: N/A (Game Mode)';
             }
             
-            // Check for star in placement mode (single view)
-            if (placementActive || legacyVisible) {
-                const legacyBoard = document.getElementById('legacy-game-board');
-                const gameContainer = document.getElementById('game-container');
-                const singleBg = document.getElementById('background-image');
+            // Check for star in placement mode (single view) - now uses same left container
+            if (placementActive) {
+                const leftBoard = document.getElementById('game-board-left');
+                const leftBg = document.getElementById('background-image-left');
                 
-                // Look for star in legacy board or main container
-                const singleStar = findStarSprite(legacyBoard) || findStarSprite(gameContainer);
-                const singlePos = getRelativePosition(singleStar, singleBg);
+                // In placement mode, look for star in the left container (same as game mode)
+                const singleStar = findStarSprite(leftBoard);
+                const singlePos = getRelativePosition(singleStar, leftBg);
                 
                 debugStarSingle.textContent = singlePos ? 
                     `Single Star: (${singlePos.x}, ${singlePos.y})` : 'Single Star: Not found';
                 debugStarLeft.textContent = 'Left Star: N/A (Single Mode)';
                 debugStarRight.textContent = 'Right Star: N/A (Single Mode)';
+            } else if (legacyVisible) {
+                // Fallback for any legacy mode usage
+                const legacyBoard = document.getElementById('legacy-game-board');
+                const gameContainer = document.getElementById('game-container');
+                const singleBg = document.getElementById('background-image');
+                
+                const singleStar = findStarSprite(legacyBoard) || findStarSprite(gameContainer);
+                const singlePos = getRelativePosition(singleStar, singleBg);
+                
+                debugStarSingle.textContent = singlePos ? 
+                    `Single Star: (${singlePos.x}, ${singlePos.y})` : 'Single Star: Not found';
+                debugStarLeft.textContent = 'Left Star: N/A (Legacy Mode)';
+                debugStarRight.textContent = 'Right Star: N/A (Legacy Mode)';
             }
         }
         

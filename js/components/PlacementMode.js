@@ -179,7 +179,8 @@ export class PlacementMode {
         
         e.preventDefault();
         
-        const container = document.getElementById('game-container');
+        // Use the same left container as game mode for consistent positioning
+        const container = document.getElementById('game-board-left');
         const containerRect = container.getBoundingClientRect();
         
         // Calculate new position relative to container
@@ -235,7 +236,7 @@ export class PlacementMode {
         }
         
         // Normal drop - position the sprite
-        const container = document.getElementById('game-container');
+        const container = document.getElementById('game-board-left');
         const containerRect = container.getBoundingClientRect();
         const finalX = e.clientX - containerRect.left - this.dragOffset.x;
         const finalY = e.clientY - containerRect.top - this.dragOffset.y;
@@ -825,7 +826,8 @@ export class PlacementMode {
     
     async applySpritePositions(positions) {
         const sprites = document.querySelectorAll('.game-sprite');
-        const backgroundImg = document.getElementById('background-image');
+        // Use unified background element for consistent positioning
+        const backgroundImg = document.getElementById('background-image-left');
         
         if (!backgroundImg) {
             console.warn('Background image not found for position application');
@@ -1320,7 +1322,8 @@ export class PlacementMode {
         }
         
         try {
-            const backgroundImg = document.getElementById('background-image');
+            // Use unified background element
+            const backgroundImg = document.getElementById('background-image-left');
             if (!backgroundImg || !backgroundImg.src) {
                 this.showFeedback('save-template', 'No background image loaded', 'error');
                 return;
@@ -1403,27 +1406,32 @@ export class PlacementMode {
     }
     
     switchToSingleView() {
-        // Hide side-by-side boards and show legacy single board
+        // Instead of using legacy board, just hide the right side and use left side only
         const gameBoardsContainer = document.querySelector('.game-boards');
         const legacyBoard = document.getElementById('legacy-game-board');
+        const rightBoard = document.getElementById('game-board-right');
         
         if (gameBoardsContainer) {
-            gameBoardsContainer.style.display = 'none';
+            gameBoardsContainer.style.display = 'flex'; // Keep side-by-side structure
         }
         
         if (legacyBoard) {
-            legacyBoard.style.display = 'flex';
-            
-            // Clear any existing sprites first, then copy background only
-            this.clearLegacyBoard();
-            this.copyBackgroundToLegacyBoard();
+            legacyBoard.style.display = 'none'; // Hide legacy board completely
         }
+        
+        if (rightBoard) {
+            rightBoard.style.display = 'none'; // Hide right side in placement mode
+        }
+        
+        // Placement mode now uses the exact same left container as game mode
+        console.log('Placement mode using unified left-side container structure');
     }
     
     switchToSideBySideView() {
-        // Hide legacy board and show side-by-side boards
+        // Show both sides again for game mode
         const gameBoardsContainer = document.querySelector('.game-boards');
         const legacyBoard = document.getElementById('legacy-game-board');
+        const rightBoard = document.getElementById('game-board-right');
         
         if (legacyBoard) {
             legacyBoard.style.display = 'none';
@@ -1431,6 +1439,10 @@ export class PlacementMode {
         
         if (gameBoardsContainer) {
             gameBoardsContainer.style.display = 'flex';
+        }
+        
+        if (rightBoard) {
+            rightBoard.style.display = 'flex'; // Show right side for game mode
         }
     }
     
@@ -1506,8 +1518,7 @@ export class PlacementMode {
     }
     
     copyGameStateToPlacementMode() {
-        // Copy background from game mode to placement mode
-        this.copyBackgroundToLegacyBoard();
+        // No need to copy backgrounds anymore since we use the same left-side structure
         
         // If there's an active template in the global game object, reference it
         if (window.game && window.game.currentTemplate) {
