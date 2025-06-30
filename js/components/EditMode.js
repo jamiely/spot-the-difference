@@ -34,6 +34,7 @@ export class EditMode {
     enterEditMode() {
         console.log('Entering edit mode');
         ViewManager.switchToSingleView();
+        this.removeAllSprites();
         this.addBackgroundListeners();
         this.showEditInterface();
         this.createVisualBoxes(); // Show existing bounding boxes
@@ -473,6 +474,18 @@ export class EditMode {
             button.textContent = originalText;
             button.style.background = '';
         }, 3000);
+    }
+    
+    removeAllSprites() {
+        // Remove all sprites from the container to provide a clean background for bounding box editing
+        const container = ViewManager.getContainer();
+        if (container) {
+            const sprites = container.querySelectorAll('.game-sprite');
+            console.log(`Removing ${sprites.length} sprites for edit mode`);
+            sprites.forEach(sprite => sprite.remove());
+        } else {
+            console.warn('Container not found when trying to remove sprites');
+        }
     }
     
     dispatchEvent(eventName, detail) {
