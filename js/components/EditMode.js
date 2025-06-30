@@ -21,21 +21,15 @@ export class EditMode {
     }
     
     toggleEditMode() {
+        // Don't toggle if placement mode is active - they are mutually exclusive
+        if (!this.isActive && this.otherMode && this.otherMode.isActive) {
+            console.log('Cannot enter edit mode - placement mode is active');
+            return;
+        }
+        
         this.isActive = !this.isActive;
         
         if (this.isActive) {
-            // Exit other mode if active (mutual exclusivity)
-            if (this.otherMode && this.otherMode.isActive) {
-                console.log('Exiting placement mode for edit mode - preventing game restoration');
-                this.otherMode.isActive = false;
-                // Call internal exit without triggering game restoration
-                this.otherMode.hidePlacementInterface();
-                this.otherMode.disableSpriteDragging();
-                this.otherMode.clearSpriteSelection();
-                this.otherMode.stopKeyRepeat();
-                document.body.classList.remove('placement-mode');
-                this.otherMode.clearDragState();
-            }
             this.enterEditMode();
         } else {
             this.exitEditMode();

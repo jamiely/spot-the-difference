@@ -46,15 +46,15 @@ export class PlacementMode {
     }
     
     async togglePlacementMode() {
+        // Don't toggle if edit mode is active - they are mutually exclusive
+        if (!this.isActive && this.otherMode && this.otherMode.isActive) {
+            console.log('Cannot enter placement mode - edit mode is active');
+            return;
+        }
+        
         this.isActive = !this.isActive;
         
         if (this.isActive) {
-            // Exit other mode if active (mutual exclusivity)
-            if (this.otherMode && this.otherMode.isActive) {
-                console.log('Exiting edit mode - placement mode starting');
-                this.otherMode.isActive = false;
-                this.otherMode.exitEditMode();
-            }
             await this.enterPlacementMode();
         } else {
             this.exitPlacementMode();
