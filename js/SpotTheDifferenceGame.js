@@ -253,6 +253,16 @@ export class SpotTheDifferenceGame extends Game {
     handleBoardClick(event, side) {
         if (!this.isGameActive) return;
         
+        // Don't handle game clicks when edit mode or placement mode is active
+        if (this.editMode && this.editMode.isActive) {
+            console.log('Ignoring game click - edit mode is active');
+            return;
+        }
+        if (this.placementMode && this.placementMode.isActive) {
+            console.log('Ignoring game click - placement mode is active');
+            return;
+        }
+        
         const board = event.currentTarget;
         const backgroundImg = document.getElementById(`background-image-${side}`);
         

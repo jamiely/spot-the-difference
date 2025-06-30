@@ -1,6 +1,7 @@
 import { SPRITE_CONFIG } from '../config/SpriteConfig.js';
 import { TemplateManager } from '../utils/TemplateManager.js';
 import { SpritePositioning } from '../utils/SpritePositioning.js';
+import { ViewManager } from '../utils/ViewManager.js';
 
 export class PlacementMode {
     constructor() {
@@ -57,7 +58,7 @@ export class PlacementMode {
     
     async enterPlacementMode() {
         console.log('Entering placement mode');
-        this.switchToSingleView();
+        ViewManager.switchToSingleView();
         
         // Clear all sprites from all containers (including side-by-side game sprites)
         this.clearAllSprites();
@@ -90,7 +91,7 @@ export class PlacementMode {
         // Store current placement state for potential restoration
         this.storePlacementState();
         
-        this.switchToSideBySideView();
+        ViewManager.switchToSideBySideView();
         this.disableSpriteDragging();
         this.hidePlacementInterface();
         this.clearSpriteSelection(); // Clear any selected sprite
@@ -1517,46 +1518,6 @@ export class PlacementMode {
         });
     }
     
-    switchToSingleView() {
-        // Instead of using legacy board, just hide the right side and use left side only
-        const gameBoardsContainer = document.querySelector('.game-boards');
-        const legacyBoard = document.getElementById('legacy-game-board');
-        const rightBoard = document.getElementById('game-board-right');
-        
-        if (gameBoardsContainer) {
-            gameBoardsContainer.style.display = 'flex'; // Keep side-by-side structure
-        }
-        
-        if (legacyBoard) {
-            legacyBoard.style.display = 'none'; // Hide legacy board completely
-        }
-        
-        if (rightBoard) {
-            rightBoard.style.display = 'none'; // Hide right side in placement mode
-        }
-        
-        // Placement mode now uses the exact same left container as game mode
-        console.log('Placement mode using unified left-side container structure');
-    }
-    
-    switchToSideBySideView() {
-        // Show both sides again for game mode
-        const gameBoardsContainer = document.querySelector('.game-boards');
-        const legacyBoard = document.getElementById('legacy-game-board');
-        const rightBoard = document.getElementById('game-board-right');
-        
-        if (legacyBoard) {
-            legacyBoard.style.display = 'none';
-        }
-        
-        if (gameBoardsContainer) {
-            gameBoardsContainer.style.display = 'flex';
-        }
-        
-        if (rightBoard) {
-            rightBoard.style.display = 'flex'; // Show right side for game mode
-        }
-    }
     
     copyContentToLegacyBoard() {
         const leftBoard = document.getElementById('game-board-left');

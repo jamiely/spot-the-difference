@@ -1,3 +1,5 @@
+import { ViewManager } from '../utils/ViewManager.js';
+
 export class EditMode {
     constructor() {
         this.isActive = false;
@@ -31,6 +33,7 @@ export class EditMode {
     
     enterEditMode() {
         console.log('Entering edit mode');
+        ViewManager.switchToSingleView();
         this.addBackgroundListeners();
         this.showEditInterface();
         this.createVisualBoxes(); // Show existing bounding boxes
@@ -39,6 +42,7 @@ export class EditMode {
     
     exitEditMode() {
         console.log('Exiting edit mode');
+        ViewManager.switchToSideBySideView();
         this.removeBackgroundListeners();
         this.hideEditInterface();
         this.clearVisualBoxes(); // Hide bounding box visuals
@@ -47,10 +51,13 @@ export class EditMode {
     }
     
     addBackgroundListeners() {
-        const backgroundImg = document.getElementById('background-image');
+        const backgroundImg = ViewManager.getBackgroundImage();
         if (backgroundImg) {
             backgroundImg.addEventListener('mousedown', this.handleMouseDown.bind(this));
             backgroundImg.style.cursor = 'crosshair';
+            console.log('Added edit mode listeners to background image');
+        } else {
+            console.warn('Background image not found for edit mode');
         }
         
         // Add global listeners for mouse move and up to handle dragging across elements
@@ -59,7 +66,7 @@ export class EditMode {
     }
     
     removeBackgroundListeners() {
-        const backgroundImg = document.getElementById('background-image');
+        const backgroundImg = ViewManager.getBackgroundImage();
         if (backgroundImg) {
             backgroundImg.removeEventListener('mousedown', this.handleMouseDown.bind(this));
             backgroundImg.style.cursor = 'default';
@@ -104,8 +111,11 @@ export class EditMode {
         if (!this.isActive || !this.isDrawing) return;
         
         e.preventDefault();
-        const backgroundImg = document.getElementById('background-image');
-        if (!backgroundImg) return;
+        const backgroundImg = ViewManager.getBackgroundImage();
+        if (!backgroundImg) {
+            console.warn('Background image not found during mouse move');
+            return;
+        }
         
         const imgRect = backgroundImg.getBoundingClientRect();
         
@@ -160,8 +170,9 @@ export class EditMode {
         box.style.width = width + 'px';
         box.style.height = height + 'px';
         
-        const backgroundImg = document.getElementById('background-image');
-        backgroundImg.parentElement.appendChild(box);
+        const backgroundImg = ViewManager.getBackgroundImage();
+        const container = ViewManager.getContainer();
+        container.appendChild(box);
         
         this.currentBox = { element: box, displayX: x, displayY: y, width, height };
     }
@@ -183,9 +194,10 @@ export class EditMode {
     finalizeBoundingBox() {
         if (this.currentBox) {
             // Convert display coordinates back to background-image-relative coordinates
-            const backgroundImg = document.getElementById('background-image');
+            const backgroundImg = ViewManager.getBackgroundImage();
+            const container = ViewManager.getContainer();
             const imgRect = backgroundImg.getBoundingClientRect();
-            const containerRect = backgroundImg.parentElement.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
             const relativeX = imgRect.left - containerRect.left;
             const relativeY = imgRect.top - containerRect.top;
             
@@ -207,7 +219,9 @@ export class EditMode {
             this.currentBox = null;
             this.updateJsonExport();
             
+            console.log('=== BOUNDING BOX FINALIZED ===');
             console.log('Added bounding box:', boundingBox);
+            console.log('Total boxes now:', this.boundingBoxes.length);
         }
     }
     
@@ -301,12 +315,17 @@ export class EditMode {
         const textarea = document.getElementById('bounding-boxes-json');
         if (textarea) {
             textarea.value = JSON.stringify(this.boundingBoxes, null, 2);
+            console.log('=== JSON EXPORT UPDATED ===');
+            console.log('Bounding boxes count:', this.boundingBoxes.length);
+            console.log('JSON preview:', this.boundingBoxes.slice(0, 2)); // Show first 2 boxes
+        } else {
+            console.warn('Bounding boxes JSON textarea not found');
         }
     }
 
     updateBackgroundInfo() {
         const backgroundInfo = document.getElementById('background-info');
-        const backgroundImg = document.getElementById('background-image');
+        const backgroundImg = ViewManager.getBackgroundImage();
         
         if (backgroundInfo && backgroundImg && backgroundImg.src) {
             const filename = backgroundImg.src.split('/').pop();
@@ -398,8 +417,12 @@ export class EditMode {
     
     createVisualBoxes() {
         // Create visual elements for all loaded bounding boxes
-        const backgroundImg = document.getElementById('background-image');
-        if (!backgroundImg) return;
+        const backgroundImg = ViewManager.getBackgroundImage();
+        const container = ViewManager.getContainer();
+        if (!backgroundImg || !container) {
+            console.warn('Background image or container not found for visual boxes');
+            return;
+        }
         
         const imgRect = backgroundImg.getBoundingClientRect();
         const containerRect = backgroundImg.parentElement.getBoundingClientRect();
@@ -421,7 +444,7 @@ export class EditMode {
                 this.removeBoundingBox(boundingBox.id);
             });
             
-            backgroundImg.parentElement.appendChild(box);
+            container.appendChild(box);
         });
     }
     
