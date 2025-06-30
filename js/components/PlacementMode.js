@@ -14,6 +14,7 @@ export class PlacementMode {
         this.keyRepeatDelay = 150; // Milliseconds between repeats
         this.templateManager = new TemplateManager(); // Template management
         this.currentTemplate = null; // Currently loaded template
+        this.otherMode = null; // Reference to edit mode for mutual exclusivity
         
         // Bind event handlers once to preserve references
         this.boundHandleSpriteMouseDown = this.handleSpriteMouseDown.bind(this);
@@ -48,6 +49,12 @@ export class PlacementMode {
         this.isActive = !this.isActive;
         
         if (this.isActive) {
+            // Exit other mode if active (mutual exclusivity)
+            if (this.otherMode && this.otherMode.isActive) {
+                console.log('Exiting edit mode - placement mode starting');
+                this.otherMode.isActive = false;
+                this.otherMode.exitEditMode();
+            }
             await this.enterPlacementMode();
         } else {
             this.exitPlacementMode();
@@ -1518,6 +1525,10 @@ export class PlacementMode {
         });
     }
     
+    
+    setOtherMode(otherMode) {
+        this.otherMode = otherMode;
+    }
     
     copyContentToLegacyBoard() {
         const leftBoard = document.getElementById('game-board-left');

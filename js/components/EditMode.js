@@ -7,6 +7,7 @@ export class EditMode {
         this.currentBox = null;
         this.isDrawing = false;
         this.startPoint = { x: 0, y: 0 };
+        this.otherMode = null; // Reference to placement mode for mutual exclusivity
         
         this.setupEventListeners();
     }
@@ -23,6 +24,18 @@ export class EditMode {
         this.isActive = !this.isActive;
         
         if (this.isActive) {
+            // Exit other mode if active (mutual exclusivity)
+            if (this.otherMode && this.otherMode.isActive) {
+                console.log('Exiting placement mode for edit mode - preventing game restoration');
+                this.otherMode.isActive = false;
+                // Call internal exit without triggering game restoration
+                this.otherMode.hidePlacementInterface();
+                this.otherMode.disableSpriteDragging();
+                this.otherMode.clearSpriteSelection();
+                this.otherMode.stopKeyRepeat();
+                document.body.classList.remove('placement-mode');
+                this.otherMode.clearDragState();
+            }
             this.enterEditMode();
         } else {
             this.exitEditMode();
@@ -474,6 +487,10 @@ export class EditMode {
             button.textContent = originalText;
             button.style.background = '';
         }, 3000);
+    }
+    
+    setOtherMode(otherMode) {
+        this.otherMode = otherMode;
     }
     
     removeAllSprites() {

@@ -13,6 +13,10 @@ export class Game {
         this.spriteManager = new SpriteManager('game-board-left');
         this.editMode = new EditMode();
         this.placementMode = new PlacementMode();
+        
+        // Set up mutual exclusivity between modes
+        this.editMode.setOtherMode(this.placementMode);
+        this.placementMode.setOtherMode(this.editMode);
         this.backgroundLoader = new BackgroundLoader();
         this.templateManager = new TemplateManager();
         this.isGameActive = false;
