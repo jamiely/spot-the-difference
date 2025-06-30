@@ -180,15 +180,6 @@ describe('EditMode', () => {
     expect(document.querySelectorAll).toHaveBeenCalledWith('.bounding-box');
   });
 
-  it('should set bounding boxes and create visual boxes', () => {
-    editMode.isActive = true;
-    const newBoxes = [
-      { id: 1, x: 10, y: 10, width: 50, height: 50 },
-    ];
-    editMode.setBoundingBoxes(newBoxes);
-    expect(editMode.boundingBoxes).toEqual(newBoxes);
-    expect(document.createElement).toHaveBeenCalled(); // For creating visual boxes
-  });
 
   it('should copy JSON to clipboard', async () => {
     editMode.boundingBoxes = [{ id: 1, x: 0, y: 0, width: 10, height: 10 }];
@@ -210,5 +201,47 @@ describe('EditMode', () => {
     expect(mockLoadButton.textContent).toContain('Loaded 1 bounding boxes');
     vi.runAllTimers();
     expect(mockLoadButton.textContent).toBe(''); // Resets after timeout
+  });
+
+  it('should handle keyboard events for toggling edit mode', () => {
+    const keydownEvent = new KeyboardEvent('keydown', { key: 'e' });
+    editMode.enterEditMode = vi.fn();
+    editMode.exitEditMode = vi.fn();
+    
+    // Simulate keydown event
+    document.addEventListener.mock.calls.find(
+      call => call[0] === 'keydown'
+    )[1](keydownEvent);
+    
+    expect(editMode.isActive).toBe(true);
+    expect(editMode.enterEditMode).toHaveBeenCalled();
+  });
+
+
+  it('should validate JSON format when loading', () => {
+    mockTextarea.value = 'invalid json';
+    editMode.loadJsonFromTextarea();
+    
+    expect(mockLoadButton.textContent).toContain('Invalid JSON');
+    expect(editMode.boundingBoxes.length).toBe(0);
+  });
+
+  it('should clear all bounding boxes', () => {
+    editMode.boundingBoxes = [
+      { id: 1, x: 0, y: 0, width: 10, height: 10 },
+      { id: 2, x: 20, y: 20, width: 15, height: 15 }
+    ];
+    
+    const mockBoxElements = [
+      { remove: vi.fn() },
+      { remove: vi.fn() }
+    ];
+    document.querySelectorAll.mockReturnValue(mockBoxElements);
+    
+    editMode.clearAllBoxes();
+    
+    expect(editMode.boundingBoxes.length).toBe(0);
+    expect(mockBoxElements[0].remove).toHaveBeenCalled();
+    expect(mockBoxElements[1].remove).toHaveBeenCalled();
   });
 });

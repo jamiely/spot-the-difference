@@ -22,12 +22,14 @@ vi.mock('../js/components/EditMode.js', () => ({
   EditMode: vi.fn().mockImplementation(() => ({
     isActive: false,
     getBoundingBoxes: vi.fn(() => []),
+    setOtherMode: vi.fn(),
   }))
 }));
 
 vi.mock('../js/components/PlacementMode.js', () => ({
   PlacementMode: vi.fn().mockImplementation(() => ({
     isActive: false,
+    setOtherMode: vi.fn(),
   }))
 }));
 

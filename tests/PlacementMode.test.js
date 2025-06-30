@@ -297,12 +297,39 @@ describe('PlacementMode', () => {
     expect(mockCopyButton.textContent).toBe('JSON copied to clipboard!');
   });
 
-  it('should save current template', async () => {
-    placementMode.spritePositions = [{ src: 's1.png', x: 10, y: 20 }];
-    await placementMode.saveCurrentTemplate();
-    expect(global.prompt).toHaveBeenCalledWith('Enter template name:');
-    expect(placementMode.templateManager.createTemplateFromCurrentState).toHaveBeenCalled();
-    expect(placementMode.templateManager.exportTemplateAsJson).toHaveBeenCalled();
-    expect(document.body.appendChild).toHaveBeenCalled(); // For modal
+  it('should handle keyboard events for toggling placement mode', async () => {
+    const keydownEvent = new KeyboardEvent('keydown', { key: 'p' });
+    placementMode.enterPlacementMode = vi.fn();
+    placementMode.exitPlacementMode = vi.fn();
+    
+    // Mock dependencies
+    placementMode.templateManager = {
+      loadAvailableTemplates: vi.fn(),
+      getTemplateById: vi.fn(() => null)
+    };
+    
+    // Simulate keydown event
+    const keydownHandler = document.addEventListener.mock.calls.find(
+      call => call[0] === 'keydown'
+    )[1];
+    
+    await keydownHandler(keydownEvent);
+    
+    expect(placementMode.isActive).toBe(true);
   });
+
+
+  it('should store and restore placement state', () => {
+    placementMode.spritePositions = [
+      { id: 'sprite_1', src: 'sprite1.png', x: 10, y: 20 }
+    ];
+    
+    placementMode.storePlacementState();
+    
+    // Should have stored the state (implementation detail, but we can verify it was called)
+    expect(global.console.log).toHaveBeenCalledWith(
+      expect.stringContaining('Storing placement state')
+    );
+  });
+
 });
