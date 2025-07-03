@@ -126,4 +126,80 @@ describe('Game', () => {
     expect(global.CustomEvent).toHaveBeenCalledWith('testEvent', { detail: { data: 'test' } });
     expect(global.document.dispatchEvent).toHaveBeenCalled();
   });
+
+  it('should handle edit mode toggle events', async () => {
+    const mockEvent = { isActive: true };
+    
+    // Simulate edit mode becoming active
+    await game.handleEditModeToggle(mockEvent);
+    expect(game.spriteManager.clearSprites).toHaveBeenCalled();
+
+    // Simulate edit mode becoming inactive
+    mockEvent.isActive = false;
+    game.isGameActive = true;
+    await game.handleEditModeToggle(mockEvent);
+    expect(game.spriteManager.displayAllSprites).toHaveBeenCalled();
+  });
+
+  it('should handle placement mode toggle events', async () => {
+    const mockEvent = { isActive: true };
+    game.isGameActive = true;
+    game.spriteManager.getSpriteCount = vi.fn(() => 0);
+    
+    // Simulate placement mode becoming active
+    await game.handlePlacementModeToggle(mockEvent);
+    expect(game.spriteManager.displayAllSprites).toHaveBeenCalled();
+  });
+
+  it('should load background and sprites on start', async () => {
+    game.templateManager.loadAvailableTemplates = vi.fn();
+    game.templateManager.getTemplateById = vi.fn(() => null);
+    
+    await game.startGame();
+    
+    expect(game.templateManager.loadAvailableTemplates).toHaveBeenCalled();
+    expect(game.backgroundLoader.getRandomBackground).toHaveBeenCalled();
+  });
+
+  it('should load template when available', async () => {
+    const mockTemplate = {
+      name: 'Test Template',
+      background: 'test-bg.png',
+      sprites: [
+        { src: 'sprite1.png', x: 10, y: 20 }
+      ]
+    };
+    
+    game.templateManager.loadAvailableTemplates = vi.fn();
+    game.templateManager.getTemplateById = vi.fn(() => mockTemplate);
+    game.loadTemplate = vi.fn();
+    
+    await game.startGame();
+    
+    expect(game.loadTemplate).toHaveBeenCalledWith(mockTemplate);
+  });
+
+  it('should handle sprite generation requests', async () => {
+    const mockEvent = { 
+      detail: { 
+        useAllSprites: false 
+      } 
+    };
+    game.isGameActive = true;
+    
+    await game.handleSpriteGenerationRequest(mockEvent);
+    
+    expect(game.spriteManager.displayAllSprites).toHaveBeenCalled();
+  });
+
+  it('should handle background change requests', async () => {
+    const mockEvent = { 
+      background: 'new-background.png' 
+    }; 
+    game.isGameActive = true;
+    
+    await game.handleBackgroundChangeRequest(mockEvent);
+    
+    expect(game.backgroundLoader.loadBackgroundImage).toHaveBeenCalledWith('new-background.png');
+  });
 });
