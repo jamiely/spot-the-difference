@@ -403,8 +403,10 @@ export class PlacementMode {
         const absolutePosEl = document.getElementById('absolute-position');
         const containerPosEl = document.getElementById('container-position');
         const backgroundPosEl = document.getElementById('background-position');
+        const renderCoordinatesEl = document.getElementById('render-coordinates');
+        const renderDimensionsEl = document.getElementById('render-dimensions');
         
-        if (!spriteNameEl || !absolutePosEl || !containerPosEl || !backgroundPosEl) {
+        if (!spriteNameEl || !absolutePosEl || !containerPosEl || !backgroundPosEl || !renderCoordinatesEl || !renderDimensionsEl) {
             return; // Elements not found
         }
         
@@ -413,6 +415,8 @@ export class PlacementMode {
             absolutePosEl.textContent = 'Absolute: -';
             containerPosEl.textContent = 'Container: -';
             backgroundPosEl.textContent = 'Background: -';
+            renderCoordinatesEl.textContent = 'RenderCoordinates: -';
+            renderDimensionsEl.textContent = 'RenderDimensions: -';
             return;
         }
         
@@ -428,6 +432,34 @@ export class PlacementMode {
         const position = SpritePositioning.getSpritePosition(sprite);
         containerPosEl.textContent = `Container: (${Math.round(position.containerX)}, ${Math.round(position.containerY)})`;
         backgroundPosEl.textContent = `Background: (${Math.round(position.backgroundX)}, ${Math.round(position.backgroundY)})`;
+        
+        // Get template data for the sprite if available
+        if (this.currentTemplate && this.currentTemplate.sprites) {
+            const templateSprite = this.currentTemplate.sprites.find(s => s.src === spriteName);
+            if (templateSprite) {
+                // Display renderCoordinates
+                if (templateSprite.renderCoordinates) {
+                    renderCoordinatesEl.textContent = `RenderCoordinates: (${templateSprite.renderCoordinates.x}, ${templateSprite.renderCoordinates.y})`;
+                } else {
+                    // Fallback to old format
+                    renderCoordinatesEl.textContent = `RenderCoordinates: (${templateSprite.x || 'N/A'}, ${templateSprite.y || 'N/A'})`;
+                }
+                
+                // Display renderDimensions
+                if (templateSprite.renderDimensions) {
+                    renderDimensionsEl.textContent = `RenderDimensions: ${templateSprite.renderDimensions.width} × ${templateSprite.renderDimensions.height}`;
+                } else {
+                    // Fallback to old format
+                    renderDimensionsEl.textContent = `RenderDimensions: ${templateSprite.width || 'N/A'} × ${templateSprite.height || 'N/A'}`;
+                }
+            } else {
+                renderCoordinatesEl.textContent = 'RenderCoordinates: Not in template';
+                renderDimensionsEl.textContent = 'RenderDimensions: Not in template';
+            }
+        } else {
+            renderCoordinatesEl.textContent = 'RenderCoordinates: No template loaded';
+            renderDimensionsEl.textContent = 'RenderDimensions: No template loaded';
+        }
     }
     
     addSelectionIndicator(sprite) {
@@ -744,7 +776,9 @@ export class PlacementMode {
                     <span id="sprite-name">No sprite selected</span><br>
                     <span id="absolute-position">Absolute: -</span><br>
                     <span id="container-position">Container: -</span><br>
-                    <span id="background-position">Background: -</span>
+                    <span id="background-position">Background: -</span><br>
+                    <span id="render-coordinates">RenderCoordinates: -</span><br>
+                    <span id="render-dimensions">RenderDimensions: -</span>
                 </div>
                 <div class="template-section" style="margin-bottom: 1rem; padding: 0.5rem; background: #e8f4fd; border-radius: 4px;">
                     <strong>Templates:</strong><br>
