@@ -179,10 +179,13 @@ export class SpotTheDifferenceGame extends Game {
                 
                 // Store reference to original sprite data
                 spriteElement.dataset.spriteId = spriteData.id;
+                // Extract coordinates correctly from new template structure
+                const x = spriteData.renderCoordinates ? spriteData.renderCoordinates.x : spriteData.x;
+                const y = spriteData.renderCoordinates ? spriteData.renderCoordinates.y : spriteData.y;
                 // Use actual sprite size for center calculation
                 const spriteSize = SPRITE_CONFIG.TARGET_SIZE_PX;
-                spriteElement.dataset.centerX = spriteData.x + spriteSize / 2;
-                spriteElement.dataset.centerY = spriteData.y + spriteSize / 2;
+                spriteElement.dataset.centerX = x + spriteSize / 2;
+                spriteElement.dataset.centerY = y + spriteSize / 2;
             } catch (error) {
                 console.warn(`Could not create right sprite ${spriteData.src}:`, error);
             }
@@ -192,13 +195,28 @@ export class SpotTheDifferenceGame extends Game {
     positionSpriteOnSide(sprite, spriteData, side) {
         const backgroundImg = document.getElementById(`background-image-${side}`);
         if (backgroundImg) {
-            // Create scaling context if template has background dimensions
-            let actualCoords = spriteData;
+            // Extract coordinates correctly from new template structure
+            const baseX = spriteData.renderCoordinates ? spriteData.renderCoordinates.x : spriteData.x;
+            const baseY = spriteData.renderCoordinates ? spriteData.renderCoordinates.y : spriteData.y;
+            
+            // Create coordinate object for scaling
+            let actualCoords = { x: baseX, y: baseY };
+            
+            // Apply scaling if template has background dimensions
             if (this.currentTemplate && this.currentTemplate.backgroundDimensions) {
                 const scalingContext = ScalingUtils.createScalingContext(this.currentTemplate, backgroundImg);
                 if (scalingContext && ScalingUtils.isScalingNeeded(scalingContext)) {
-                    actualCoords = ScalingUtils.scaleCoordinates(spriteData, scalingContext.scalingFactor);
-                    console.log(`Scaling sprite ${spriteData.src} on ${side} side from template(${spriteData.x}, ${spriteData.y}) to actual(${actualCoords.x}, ${actualCoords.y})`);
+                    // Create a compatible object for the scaling function
+                    const coordsForScaling = {
+                        x: baseX,
+                        y: baseY,
+                        width: spriteData.renderDimensions ? spriteData.renderDimensions.width : spriteData.width,
+                        height: spriteData.renderDimensions ? spriteData.renderDimensions.height : spriteData.height,
+                        renderDimensions: spriteData.renderDimensions
+                    };
+                    
+                    actualCoords = ScalingUtils.scaleCoordinates(coordsForScaling, scalingContext.scalingFactor);
+                    console.log(`Scaling sprite ${spriteData.src} on ${side} side from template(${baseX}, ${baseY}) to actual(${actualCoords.x}, ${actualCoords.y})`);
                     
                     // Apply scaling to sprite size if provided
                     if (actualCoords.width && actualCoords.height) {
