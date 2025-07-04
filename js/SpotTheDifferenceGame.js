@@ -1,6 +1,7 @@
 import { Game } from './Game.js';
 import { SpriteManager } from './components/SpriteManager.js';
 import { SPRITE_CONFIG } from './config/SpriteConfig.js';
+import { ScalingUtils } from './utils/ScalingUtils.js';
 
 export class SpotTheDifferenceGame extends Game {
     constructor() {
@@ -191,6 +192,22 @@ export class SpotTheDifferenceGame extends Game {
     positionSpriteOnSide(sprite, spriteData, side) {
         const backgroundImg = document.getElementById(`background-image-${side}`);
         if (backgroundImg) {
+            // Create scaling context if template has background dimensions
+            let actualCoords = spriteData;
+            if (this.currentTemplate && this.currentTemplate.backgroundDimensions) {
+                const scalingContext = ScalingUtils.createScalingContext(this.currentTemplate, backgroundImg);
+                if (scalingContext && ScalingUtils.isScalingNeeded(scalingContext)) {
+                    actualCoords = ScalingUtils.scaleCoordinates(spriteData, scalingContext.scalingFactor);
+                    console.log(`Scaling sprite ${spriteData.src} on ${side} side from template(${spriteData.x}, ${spriteData.y}) to actual(${actualCoords.x}, ${actualCoords.y})`);
+                    
+                    // Apply scaling to sprite size if provided
+                    if (actualCoords.width && actualCoords.height) {
+                        sprite.style.width = actualCoords.width + 'px';
+                        sprite.style.height = actualCoords.height + 'px';
+                    }
+                }
+            }
+            
             const container = backgroundImg.parentElement;
             const containerRect = container.getBoundingClientRect();
             const bgRect = backgroundImg.getBoundingClientRect();
@@ -200,8 +217,8 @@ export class SpotTheDifferenceGame extends Game {
             const bgOffsetY = bgRect.top - containerRect.top;
             
             // Position sprite relative to background image position within the container
-            sprite.style.left = (bgOffsetX + spriteData.x) + 'px';
-            sprite.style.top = (bgOffsetY + spriteData.y) + 'px';
+            sprite.style.left = (bgOffsetX + actualCoords.x) + 'px';
+            sprite.style.top = (bgOffsetY + actualCoords.y) + 'px';
         }
     }
     

@@ -1,238 +1,480 @@
 {
   "name": "Bookcase Template",
   "background": "bookcase.png",
+  "backgroundDimensions": {
+    "originalDimensions": {
+      "width": 1024,
+      "height": 1536
+    },
+    "renderDimensions": {
+      "width": 400,
+      "height": 600
+    }
+  },
   "sprites": [
     {
       "id": "sprite_16",
       "src": "gold_star.png",
-      "x": 338,
-      "y": 31,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 277,
+        "height": 254
+      },
+      "renderDimensions": {
+        "width": 69,
+        "height": 64
+      },
+      "renderCoordinates": {
+        "x": 338,
+        "y": 31
+      }
     },
     {
       "id": "sprite_17",
       "src": "crumpled_paper.png",
-      "x": 342,
-      "y": 175,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 279,
+        "height": 253
+      },
+      "renderDimensions": {
+        "width": 70,
+        "height": 63
+      },
+      "renderCoordinates": {
+        "x": 342,
+        "y": 175
+      }
     },
     {
       "id": "sprite_18",
       "src": "homework_paper.png",
-      "x": 249,
-      "y": 148,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 376,
+        "height": 328
+      },
+      "renderDimensions": {
+        "width": 94,
+        "height": 82
+      },
+      "renderCoordinates": {
+        "x": 249,
+        "y": 148
+      }
     },
     {
       "id": "sprite_19",
       "src": "rain_boot.png",
-      "x": 218,
-      "y": 147,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 285,
+        "height": 325
+      },
+      "renderDimensions": {
+        "width": 71,
+        "height": 81
+      },
+      "renderCoordinates": {
+        "x": 218,
+        "y": 147
+      }
     },
     {
       "id": "sprite_20",
       "src": "pencil_case.png",
-      "x": 169,
-      "y": 176,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 299,
+        "height": 180
+      },
+      "renderDimensions": {
+        "width": 75,
+        "height": 45
+      },
+      "renderCoordinates": {
+        "x": 169,
+        "y": 176
+      }
     },
     {
       "id": "sprite_21",
       "src": "coin_purse.png",
-      "x": 107,
-      "y": 166,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 303,
+        "height": 216
+      },
+      "renderDimensions": {
+        "width": 76,
+        "height": 54
+      },
+      "renderCoordinates": {
+        "x": 107,
+        "y": 166
+      }
     },
     {
       "id": "sprite_22",
       "src": "cat_drawing.png",
-      "x": 16,
-      "y": 141,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 328,
+        "height": 276
+      },
+      "renderDimensions": {
+        "width": 82,
+        "height": 69
+      },
+      "renderCoordinates": {
+        "x": 16,
+        "y": 141
+      }
     },
     {
       "id": "sprite_23",
       "src": "permission_slip.png",
-      "x": 267,
-      "y": 277,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 324,
+        "height": 283
+      },
+      "renderDimensions": {
+        "width": 81,
+        "height": 71
+      },
+      "renderCoordinates": {
+        "x": 267,
+        "y": 277
+      }
     },
     {
       "id": "sprite_24",
       "src": "school_dance_flyer.png",
-      "x": 248,
-      "y": 281,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 286,
+        "height": 261
+      },
+      "renderDimensions": {
+        "width": 72,
+        "height": 65
+      },
+      "renderCoordinates": {
+        "x": 248,
+        "y": 281
+      }
     },
     {
       "id": "sprite_25",
       "src": "lunch_menu.png",
-      "x": 233,
-      "y": 291,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 233,
+        "height": 217
+      },
+      "renderDimensions": {
+        "width": 58,
+        "height": 54
+      },
+      "renderCoordinates": {
+        "x": 233,
+        "y": 291
+      }
     },
     {
       "id": "sprite_26",
       "src": "paintbrush.png",
-      "x": 206,
-      "y": 264,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 228,
+        "height": 311
+      },
+      "renderDimensions": {
+        "width": 57,
+        "height": 78
+      },
+      "renderCoordinates": {
+        "x": 206,
+        "y": 264
+      }
     },
     {
       "id": "sprite_27",
       "src": "winter_mitten.png",
-      "x": 182,
-      "y": 272,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 214,
+        "height": 274
+      },
+      "renderDimensions": {
+        "width": 54,
+        "height": 69
+      },
+      "renderCoordinates": {
+        "x": 182,
+        "y": 272
+      }
     },
     {
       "id": "sprite_28",
       "src": "watercolor_paint_set.png",
-      "x": 107,
-      "y": 277,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 402,
+        "height": 300
+      },
+      "renderDimensions": {
+        "width": 101,
+        "height": 75
+      },
+      "renderCoordinates": {
+        "x": 107,
+        "y": 277
+      }
     },
     {
       "id": "sprite_29",
       "src": "orange_crayon.png",
-      "x": 356,
-      "y": 381,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 229,
+        "height": 162
+      },
+      "renderDimensions": {
+        "width": 57,
+        "height": 41
+      },
+      "renderCoordinates": {
+        "x": 356,
+        "y": 381
+      }
     },
     {
       "id": "sprite_30",
       "src": "lunch_bag_orange.png",
-      "x": 364,
-      "y": 568,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 224,
+        "height": 233
+      },
+      "renderDimensions": {
+        "width": 56,
+        "height": 58
+      },
+      "renderCoordinates": {
+        "x": 364,
+        "y": 568
+      }
     },
     {
       "id": "sprite_31",
       "src": "spilled_paint_cup.png",
-      "x": 254,
-      "y": 532,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 282,
+        "height": 268
+      },
+      "renderDimensions": {
+        "width": 71,
+        "height": 67
+      },
+      "renderCoordinates": {
+        "x": 254,
+        "y": 532
+      }
     },
     {
       "id": "sprite_32",
       "src": "spilled_glue.png",
-      "x": 247,
-      "y": 552,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 485,
+        "height": 312
+      },
+      "renderDimensions": {
+        "width": 121,
+        "height": 78
+      },
+      "renderCoordinates": {
+        "x": 247,
+        "y": 552
+      }
     },
     {
       "id": "sprite_33",
       "src": "orange_sock.png",
-      "x": 185,
-      "y": 546,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 289,
+        "height": 235
+      },
+      "renderDimensions": {
+        "width": 72,
+        "height": 59
+      },
+      "renderCoordinates": {
+        "x": 185,
+        "y": 546
+      }
     },
     {
       "id": "sprite_34",
       "src": "spilled_juice_box.png",
-      "x": 119,
-      "y": 546,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 295,
+        "height": 292
+      },
+      "renderDimensions": {
+        "width": 74,
+        "height": 73
+      },
+      "renderCoordinates": {
+        "x": 119,
+        "y": 546
+      }
     },
     {
       "id": "sprite_35",
       "src": "pink_backpack.png",
-      "x": 0,
-      "y": 486,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 306,
+        "height": 300
+      },
+      "renderDimensions": {
+        "width": 77,
+        "height": 75
+      },
+      "renderCoordinates": {
+        "x": 0,
+        "y": 486
+      }
     },
     {
       "id": "sprite_36",
       "src": "covid_lanyard.png",
-      "x": 76,
-      "y": 532,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 243,
+        "height": 277
+      },
+      "renderDimensions": {
+        "width": 61,
+        "height": 69
+      },
+      "renderCoordinates": {
+        "x": 76,
+        "y": 532
+      }
     },
     {
       "id": "sprite_37",
       "src": "yellow_pencil.png",
-      "x": 12,
-      "y": 560,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 290,
+        "height": 171
+      },
+      "renderDimensions": {
+        "width": 73,
+        "height": 43
+      },
+      "renderCoordinates": {
+        "x": 12,
+        "y": 560
+      }
     },
     {
       "id": "sprite_38",
       "src": "purple_glasses.png",
-      "x": 318,
-      "y": 486,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 357,
+        "height": 184
+      },
+      "renderDimensions": {
+        "width": 89,
+        "height": 46
+      },
+      "renderCoordinates": {
+        "x": 318,
+        "y": 486
+      }
     },
     {
       "id": "sprite_39",
       "src": "glue_stick.png",
-      "x": 313,
-      "y": 424,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 89,
+        "height": 245
+      },
+      "renderDimensions": {
+        "width": 22,
+        "height": 61
+      },
+      "renderCoordinates": {
+        "x": 313,
+        "y": 424
+      }
     },
     {
       "id": "sprite_40",
       "src": "green_robot.png",
-      "x": 253,
-      "y": 358,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 250,
+        "height": 350
+      },
+      "renderDimensions": {
+        "width": 63,
+        "height": 88
+      },
+      "renderCoordinates": {
+        "x": 253,
+        "y": 358
+      }
     },
     {
       "id": "sprite_41",
       "src": "four_leaf_clover.png",
-      "x": 271,
-      "y": 395,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 119,
+        "height": 171
+      },
+      "renderDimensions": {
+        "width": 30,
+        "height": 43
+      },
+      "renderCoordinates": {
+        "x": 271,
+        "y": 395
+      }
     },
     {
       "id": "sprite_42",
       "src": "name_tag.png",
-      "x": 209,
-      "y": 432,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 378,
+        "height": 284
+      },
+      "renderDimensions": {
+        "width": 95,
+        "height": 71
+      },
+      "renderCoordinates": {
+        "x": 209,
+        "y": 432
+      }
     },
     {
       "id": "sprite_43",
       "src": "leaf_wreath.png",
-      "x": 138,
-      "y": 468,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 229,
+        "height": 243
+      },
+      "renderDimensions": {
+        "width": 57,
+        "height": 61
+      },
+      "renderCoordinates": {
+        "x": 138,
+        "y": 468
+      }
     },
     {
       "id": "sprite_44",
       "src": "paper_airplane.png",
-      "x": 160,
-      "y": 415,
-      "width": 155,
-      "height": 155
+      "originalDimensions": {
+        "width": 336,
+        "height": 258
+      },
+      "renderDimensions": {
+        "width": 84,
+        "height": 65
+      },
+      "renderCoordinates": {
+        "x": 160,
+        "y": 415
+      }
     }
   ]
 }

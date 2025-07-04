@@ -199,6 +199,40 @@ export class SpriteManager {
         
         return sprite;
     }
+
+    /**
+     * Create a sprite at template coordinates with scaling support
+     * @param {string} spriteSrc - Sprite source filename
+     * @param {Object} templateCoords - Template coordinates {x, y, width, height}
+     * @param {Object} template - Template object with backgroundDimensions
+     * @returns {HTMLElement} Created sprite element
+     */
+    async createSpriteAtTemplatePosition(spriteSrc, templateCoords, template) {
+        // Create sprite element with sizing
+        const sprite = await this.createSpriteElement(spriteSrc, [], null);
+        
+        // Position using scaled positioning system
+        SpritePositioning.positionSpriteWithScaling(sprite, templateCoords, template);
+        
+        // Track sprite
+        this.container.appendChild(sprite);
+        this.activeSprites.push(sprite);
+        
+        // Store position for collision detection
+        const spriteWidth = parseInt(sprite.style.width) || SPRITE_CONFIG.TARGET_SIZE_PX;
+        const spriteHeight = parseInt(sprite.style.height) || SPRITE_CONFIG.TARGET_SIZE_PX;
+        const containerX = parseInt(sprite.style.left) || 0;
+        const containerY = parseInt(sprite.style.top) || 0;
+        
+        this.spritePositions.push({
+            x: containerX,
+            y: containerY,
+            width: spriteWidth,
+            height: spriteHeight
+        });
+        
+        return sprite;
+    }
     
     /**
      * Get sprite position in background-relative coordinates

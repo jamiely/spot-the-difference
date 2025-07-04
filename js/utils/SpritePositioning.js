@@ -1,3 +1,5 @@
+import { ScalingUtils } from './ScalingUtils.js';
+
 /**
  * Centralized sprite positioning utility class
  * Handles all sprite placement calculations consistently across different game modes
@@ -120,6 +122,51 @@ export class SpritePositioning {
         spriteElement.style.top = containerY + 'px';
         
         console.log(`Positioned sprite at background(${backgroundX}, ${backgroundY}) -> container(${containerX}, ${containerY}) [mode: ${context.mode}]`);
+    }
+    
+    /**
+     * Position a sprite using template coordinates with scaling support
+     * @param {HTMLElement} spriteElement - Sprite element to position
+     * @param {Object} templateCoords - Template coordinates {x, y, width, height}
+     * @param {Object} template - Template object with backgroundDimensions
+     * @param {HTMLElement} backgroundImg - Background image element (optional, will auto-detect)
+     * @param {HTMLElement} container - Container element (optional, will auto-detect)
+     */
+    static positionSpriteWithScaling(spriteElement, templateCoords, template, backgroundImg = null, container = null) {
+        // Auto-detect context if not provided
+        const context = backgroundImg && container ? 
+            { backgroundImg, container } : 
+            this.getActiveBackgroundContext();
+        
+        if (!context.backgroundImg || !context.container) {
+            console.warn('Cannot position sprite - missing background or container');
+            return;
+        }
+        
+        // Create scaling context
+        const scalingContext = ScalingUtils.createScalingContext(template, context.backgroundImg);
+        
+        if (!scalingContext) {
+            console.warn('Could not create scaling context, falling back to direct positioning');
+            this.positionSpriteAtBackgroundCoords(spriteElement, templateCoords.x, templateCoords.y, context.backgroundImg, context.container);
+            return;
+        }
+        
+        // Scale coordinates if needed
+        let actualCoords = templateCoords;
+        if (ScalingUtils.isScalingNeeded(scalingContext)) {
+            actualCoords = ScalingUtils.scaleCoordinates(templateCoords, scalingContext.scalingFactor);
+            console.log(`Scaling sprite from template(${templateCoords.x}, ${templateCoords.y}) to actual(${actualCoords.x}, ${actualCoords.y})`);
+        }
+        
+        // Apply scaling to sprite size if provided
+        if (actualCoords.width && actualCoords.height) {
+            spriteElement.style.width = actualCoords.width + 'px';
+            spriteElement.style.height = actualCoords.height + 'px';
+        }
+        
+        // Position sprite using scaled coordinates
+        this.positionSpriteAtBackgroundCoords(spriteElement, actualCoords.x, actualCoords.y, context.backgroundImg, context.container);
     }
     
     /**

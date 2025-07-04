@@ -317,16 +317,25 @@ export class Game {
             // Wait a moment for background to be properly positioned
             await new Promise(resolve => setTimeout(resolve, 200));
             
-            // Create sprites from template positions using centralized system
+            // Create sprites from template positions using scaled positioning system
             let successCount = 0;
             for (const spriteData of template.sprites) {
                 try {
-                    // Use centralized sprite creation system
-                    await this.spriteManager.createSpriteAtBackgroundPosition(
-                        spriteData.src, 
-                        spriteData.x, 
-                        spriteData.y
-                    );
+                    // Use scaled sprite creation system if template has background dimensions
+                    if (template.backgroundDimensions) {
+                        await this.spriteManager.createSpriteAtTemplatePosition(
+                            spriteData.src, 
+                            spriteData,
+                            template
+                        );
+                    } else {
+                        // Fallback to direct positioning for legacy templates
+                        await this.spriteManager.createSpriteAtBackgroundPosition(
+                            spriteData.src, 
+                            spriteData.x, 
+                            spriteData.y
+                        );
+                    }
                     successCount++;
                     
                 } catch (error) {

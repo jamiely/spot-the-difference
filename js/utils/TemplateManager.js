@@ -66,6 +66,19 @@ export class TemplateManager {
             return false;
         }
         
+        // Validate background dimensions if present
+        if (template.backgroundDimensions) {
+            const dims = template.backgroundDimensions;
+            if (!dims.originalDimensions || !dims.renderDimensions ||
+                typeof dims.originalDimensions.width !== 'number' || 
+                typeof dims.originalDimensions.height !== 'number' || 
+                typeof dims.renderDimensions.width !== 'number' || 
+                typeof dims.renderDimensions.height !== 'number') {
+                console.warn('Template has invalid backgroundDimensions structure');
+                return false;
+            }
+        }
+        
         // Validate each sprite entry
         for (let i = 0; i < template.sprites.length; i++) {
             const sprite = template.sprites[i];
@@ -114,7 +127,7 @@ export class TemplateManager {
         return templateData;
     }
 
-    createTemplateFromCurrentState(name, background, spritePositions) {
+    createTemplateFromCurrentState(name, background, spritePositions, backgroundDimensions = null) {
         const template = {
             name: name,
             background: background,
@@ -127,6 +140,10 @@ export class TemplateManager {
                 height: sprite.height || 155
             }))
         };
+        
+        if (backgroundDimensions) {
+            template.backgroundDimensions = backgroundDimensions;
+        }
         
         return template;
     }
@@ -162,6 +179,41 @@ export class TemplateManager {
             spriteCount: template.sprites.length,
             background: template.background,
             name: template.name
+        };
+    }
+
+    async getBackgroundDimensionsFromAssets(backgroundFilename) {
+        try {
+            const response = await fetch('./config/assets.json');
+            if (!response.ok) {
+                throw new Error('Could not load assets.json');
+            }
+            
+            const assets = await response.json();
+            const backgroundAsset = assets.backgrounds.find(bg => bg.filename === backgroundFilename);
+            
+            if (!backgroundAsset) {
+                throw new Error(`Background ${backgroundFilename} not found in assets.json`);
+            }
+            
+            return {
+                originalWidth: backgroundAsset.width,
+                originalHeight: backgroundAsset.height
+            };
+        } catch (error) {
+            console.warn('Could not get background dimensions from assets:', error);
+            return null;
+        }
+    }
+
+    calculateRenderDimensions(originalWidth, originalHeight, maxWidth = 400) {
+        const aspectRatio = originalWidth / originalHeight;
+        let renderWidth = maxWidth;
+        let renderHeight = Math.round(maxWidth / aspectRatio);
+        
+        return {
+            renderWidth,
+            renderHeight
         };
     }
 }
