@@ -1,16 +1,107 @@
 {
   "meta": {
-    "generated": "2025-06-28T14:02:44.982Z",
-    "backgroundCount": 1,
+    "generated": "2025-07-04T02:07:56.240Z",
+    "backgroundCount": 14,
     "spriteCount": 46
   },
   "backgrounds": [
+    {
+      "filename": "auditorium.png",
+      "width": 1024,
+      "height": 1024,
+      "type": "png",
+      "size": 2192071
+    },
+    {
+      "filename": "bleachers.png",
+      "width": 1024,
+      "height": 1024,
+      "type": "png",
+      "size": 2050244
+    },
     {
       "filename": "bookcase.png",
       "width": 1024,
       "height": 1536,
       "type": "png",
       "size": 2989906
+    },
+    {
+      "filename": "chemistry_lab.png",
+      "width": 1536,
+      "height": 1024,
+      "type": "png",
+      "size": 4683543
+    },
+    {
+      "filename": "classroom.png",
+      "width": 1536,
+      "height": 1024,
+      "type": "png",
+      "size": 4344264
+    },
+    {
+      "filename": "computer_classroom.png",
+      "width": 1536,
+      "height": 1024,
+      "type": "png",
+      "size": 3117670
+    },
+    {
+      "filename": "garden.png",
+      "width": 1024,
+      "height": 1536,
+      "type": "png",
+      "size": 3180575
+    },
+    {
+      "filename": "gymnasium.png",
+      "width": 1536,
+      "height": 1024,
+      "type": "png",
+      "size": 4756253
+    },
+    {
+      "filename": "infirmary.png",
+      "width": 1536,
+      "height": 1024,
+      "type": "png",
+      "size": 4499335
+    },
+    {
+      "filename": "library.png",
+      "width": 1536,
+      "height": 1024,
+      "type": "png",
+      "size": 4585340
+    },
+    {
+      "filename": "planetarium.png",
+      "width": 1024,
+      "height": 1024,
+      "type": "png",
+      "size": 2047430
+    },
+    {
+      "filename": "playground.png",
+      "width": 1536,
+      "height": 1024,
+      "type": "png",
+      "size": 3581610
+    },
+    {
+      "filename": "school_entrance.png",
+      "width": 1536,
+      "height": 1024,
+      "type": "png",
+      "size": 4411201
+    },
+    {
+      "filename": "teachers_lounge.png",
+      "width": 1536,
+      "height": 1024,
+      "type": "png",
+      "size": 3300527
     }
   ],
   "sprites": [
