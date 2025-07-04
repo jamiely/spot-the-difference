@@ -707,19 +707,22 @@ export class PlacementMode {
                 console.log(`[${new Date().toISOString()}] Saving ${sprite.src.split('/').pop()}: Container(${position.containerX}, ${position.containerY}) -> JSON(${position.backgroundX}, ${position.backgroundY}), RelativeOffset(${debugInfo.offset.x}, ${debugInfo.offset.y})`);
             }
             
-            // Calculate actual sprite size based on container
-            const actualSpriteSize = SPRITE_CONFIG.getSizeInPixels(
-                debugInfo.container.rect.width, 
-                debugInfo.container.rect.height
-            );
+            // Get actual CSS dimensions from the sprite element
+            const spriteRect = sprite.getBoundingClientRect();
+            const actualWidth = Math.round(spriteRect.width);
+            const actualHeight = Math.round(spriteRect.height);
             
             return {
                 id: `sprite_${index}`,
                 src: sprite.src.split('/').pop(), // Get filename only
-                x: Math.round(position.backgroundX),
-                y: Math.round(position.backgroundY),
-                width: actualSpriteSize,
-                height: actualSpriteSize
+                renderCoordinates: {
+                    x: Math.round(position.backgroundX),
+                    y: Math.round(position.backgroundY)
+                },
+                renderDimensions: {
+                    width: actualWidth,
+                    height: actualHeight
+                }
             };
         });
         
