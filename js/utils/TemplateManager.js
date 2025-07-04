@@ -87,8 +87,14 @@ export class TemplateManager {
                 return false;
             }
             
-            if (typeof sprite.x !== 'number' || typeof sprite.y !== 'number') {
-                console.warn(`Template sprite ${i} missing or invalid x/y coordinates`);
+            // Check coordinates (support both old and new format)
+            const hasOldCoords = typeof sprite.x === 'number' && typeof sprite.y === 'number';
+            const hasNewCoords = sprite.renderCoordinates && 
+                                typeof sprite.renderCoordinates.x === 'number' && 
+                                typeof sprite.renderCoordinates.y === 'number';
+            
+            if (!hasOldCoords && !hasNewCoords) {
+                console.warn(`Template sprite ${i} missing or invalid coordinates`);
                 return false;
             }
         }
@@ -134,10 +140,14 @@ export class TemplateManager {
             sprites: spritePositions.map((sprite, index) => ({
                 id: sprite.id || `sprite_${index}`,
                 src: sprite.src,
-                x: sprite.x,
-                y: sprite.y,
-                width: sprite.width || 155,
-                height: sprite.height || 155
+                renderCoordinates: {
+                    x: sprite.renderCoordinates ? sprite.renderCoordinates.x : sprite.x,
+                    y: sprite.renderCoordinates ? sprite.renderCoordinates.y : sprite.y
+                },
+                renderDimensions: {
+                    width: sprite.renderDimensions ? sprite.renderDimensions.width : (sprite.width || 155),
+                    height: sprite.renderDimensions ? sprite.renderDimensions.height : (sprite.height || 155)
+                }
             }))
         };
         

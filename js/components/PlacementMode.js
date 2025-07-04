@@ -998,11 +998,13 @@ export class PlacementMode {
             for (const position of missingSprites) {
                 try {
                     // Request sprite creation through event system
+                    const x = position.renderCoordinates ? position.renderCoordinates.x : position.x;
+                    const y = position.renderCoordinates ? position.renderCoordinates.y : position.y;
                     const createSpriteEvent = new CustomEvent('requestSpriteCreation', {
                         detail: { 
                             spriteSrc: position.src,
-                            x: position.x,
-                            y: position.y
+                            x: x,
+                            y: y
                         }
                     });
                     document.dispatchEvent(createSpriteEvent);
@@ -1225,10 +1227,12 @@ export class PlacementMode {
         for (const spriteData of template.sprites) {
             try {
                 // Request sprite creation from Game.js using the same method as SpotTheDifferenceGame
+                const x = spriteData.renderCoordinates ? spriteData.renderCoordinates.x : spriteData.x;
+                const y = spriteData.renderCoordinates ? spriteData.renderCoordinates.y : spriteData.y;
                 this.dispatchEvent('requestSpriteCreation', {
                     spriteSrc: spriteData.src,
-                    x: spriteData.x,
-                    y: spriteData.y
+                    x: x,
+                    y: y
                 });
                 
                 // Small delay to prevent overwhelming the system
