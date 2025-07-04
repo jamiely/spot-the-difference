@@ -133,5 +133,91 @@ describe('TemplateManager', () => {
     await expect(templateManager.checkBackgroundExists('existing.png')).resolves.toBe(true);
   });
 
-  
+  it('should validate template with new background dimensions structure', () => {
+    const validTemplate = {
+      name: 'Test Template',
+      background: 'test.png',
+      backgroundDimensions: {
+        originalDimensions: { width: 1024, height: 1536 },
+        renderDimensions: { width: 400, height: 600 }
+      },
+      sprites: [{ src: 'sprite.png', x: 100, y: 200 }]
+    };
+
+    expect(templateManager.validateTemplate(validTemplate)).toBe(true);
+  });
+
+  it('should reject template with invalid background dimensions structure', () => {
+    const invalidTemplate = {
+      name: 'Invalid Template',
+      background: 'test.png',
+      backgroundDimensions: {
+        originalWidth: 1024, // Old structure
+        originalHeight: 1536,
+        renderWidth: 400,
+        renderHeight: 600
+      },
+      sprites: [{ src: 'sprite.png', x: 100, y: 200 }]
+    };
+
+    expect(templateManager.validateTemplate(invalidTemplate)).toBe(false);
+  });
+
+  it('should get background dimensions from assets', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        backgrounds: [
+          { filename: 'test.png', width: 1024, height: 1536 }
+        ]
+      })
+    });
+
+    const dimensions = await templateManager.getBackgroundDimensionsFromAssets('test.png');
+    
+    expect(dimensions).toEqual({
+      originalWidth: 1024,
+      originalHeight: 1536
+    });
+  });
+
+  it('should return null for missing background in assets', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        backgrounds: [
+          { filename: 'other.png', width: 800, height: 600 }
+        ]
+      })
+    });
+
+    const dimensions = await templateManager.getBackgroundDimensionsFromAssets('missing.png');
+    
+    expect(dimensions).toBeNull();
+  });
+
+  it('should calculate render dimensions correctly', () => {
+    const result = templateManager.calculateRenderDimensions(1024, 1536, 400);
+    
+    expect(result.renderWidth).toBe(400);
+    expect(result.renderHeight).toBe(600); // Math.round(400 / (1024/1536))
+  });
+
+  it('should create template with background dimensions', () => {
+    const backgroundDimensions = {
+      originalDimensions: { width: 1024, height: 1536 },
+      renderDimensions: { width: 400, height: 600 }
+    };
+
+    const template = templateManager.createTemplateFromCurrentState(
+      'New Template',
+      'new_bg.png',
+      [{ src: 's1.png', x: 10, y: 20, width: 100, height: 100 }],
+      backgroundDimensions
+    );
+
+    expect(template.name).toBe('New Template');
+    expect(template.backgroundDimensions).toEqual(backgroundDimensions);
+    expect(template.sprites.length).toBe(1);
+  });
 });

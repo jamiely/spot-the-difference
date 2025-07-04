@@ -330,10 +330,12 @@ export class Game {
                         );
                     } else {
                         // Fallback to direct positioning for legacy templates
+                        const x = spriteData.renderCoordinates ? spriteData.renderCoordinates.x : spriteData.x;
+                        const y = spriteData.renderCoordinates ? spriteData.renderCoordinates.y : spriteData.y;
                         await this.spriteManager.createSpriteAtBackgroundPosition(
                             spriteData.src, 
-                            spriteData.x, 
-                            spriteData.y
+                            x, 
+                            y
                         );
                     }
                     successCount++;

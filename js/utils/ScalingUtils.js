@@ -62,7 +62,7 @@ export class ScalingUtils {
      * @returns {Object} Scaling context {templateDimensions, actualDimensions, scalingFactor}
      */
     static createScalingContext(template, backgroundElement) {
-        if (!template.backgroundDimensions) {
+        if (!template || !template.backgroundDimensions) {
             console.warn('Template missing backgroundDimensions, scaling will not work properly');
             return null;
         }

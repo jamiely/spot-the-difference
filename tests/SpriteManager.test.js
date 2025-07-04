@@ -178,4 +178,39 @@ describe('SpriteManager', () => {
     const bgImg = ViewManager.getBackgroundImage();
     expect(bgImg).toBe(mockBgImg);
   });
+
+  it('should create sprite at template position', async () => {
+    const mockSprite = {
+      style: { position: '', left: '', top: '', width: '', height: '' },
+      getBoundingClientRect: vi.fn(() => ({ 
+        width: 50, 
+        height: 50 
+      })),
+      naturalWidth: 50,
+      naturalHeight: 50,
+      addEventListener: vi.fn(),
+      src: './sprites/sprite1.png'
+    };
+
+    const templateCoords = {
+      renderCoordinates: { x: 100, y: 200 },
+      renderDimensions: { width: 69, height: 64 }
+    };
+
+    const mockTemplate = {
+      backgroundDimensions: {
+        renderDimensions: { width: 400, height: 600 }
+      }
+    };
+
+    spriteManager.createSpriteElement = vi.fn().mockResolvedValue(mockSprite);
+    spriteManager.container.appendChild = vi.fn();
+
+    const result = await spriteManager.createSpriteAtTemplatePosition('sprite1.png', templateCoords, mockTemplate);
+
+    expect(spriteManager.createSpriteElement).toHaveBeenCalledWith('sprite1.png', [], null);
+    expect(spriteManager.container.appendChild).toHaveBeenCalledWith(mockSprite);
+    expect(spriteManager.activeSprites).toContain(mockSprite);
+    expect(result).toBe(mockSprite);
+  });
 });

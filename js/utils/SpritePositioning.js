@@ -148,15 +148,24 @@ export class SpritePositioning {
         
         if (!scalingContext) {
             console.warn('Could not create scaling context, falling back to direct positioning');
-            this.positionSpriteAtBackgroundCoords(spriteElement, templateCoords.x, templateCoords.y, context.backgroundImg, context.container);
+            const x = templateCoords.renderCoordinates ? templateCoords.renderCoordinates.x : templateCoords.x;
+            const y = templateCoords.renderCoordinates ? templateCoords.renderCoordinates.y : templateCoords.y;
+            this.positionSpriteAtBackgroundCoords(spriteElement, x, y, context.backgroundImg, context.container);
             return;
         }
         
+        // Prepare coordinates for scaling (handle both old and new format)
+        const coordsToScale = {
+            x: templateCoords.renderCoordinates ? templateCoords.renderCoordinates.x : templateCoords.x,
+            y: templateCoords.renderCoordinates ? templateCoords.renderCoordinates.y : templateCoords.y,
+            renderDimensions: templateCoords.renderDimensions
+        };
+        
         // Scale coordinates if needed
-        let actualCoords = templateCoords;
+        let actualCoords = coordsToScale;
         if (ScalingUtils.isScalingNeeded(scalingContext)) {
-            actualCoords = ScalingUtils.scaleCoordinates(templateCoords, scalingContext.scalingFactor);
-            console.log(`Scaling sprite from template(${templateCoords.x}, ${templateCoords.y}) to actual(${actualCoords.x}, ${actualCoords.y})`);
+            actualCoords = ScalingUtils.scaleCoordinates(coordsToScale, scalingContext.scalingFactor);
+            console.log(`Scaling sprite from template(${coordsToScale.x}, ${coordsToScale.y}) to actual(${actualCoords.x}, ${actualCoords.y})`);
         }
         
         // Apply scaling to sprite size if provided

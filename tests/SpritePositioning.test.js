@@ -271,6 +271,96 @@ describe('SpritePositioning', () => {
     });
   });
 
+  describe('positionSpriteWithScaling', () => {
+    it('should position sprite with scaling when template has background dimensions', () => {
+      const templateCoords = {
+        renderCoordinates: { x: 100, y: 150 },
+        renderDimensions: { width: 69, height: 64 }
+      };
+
+      const mockTemplate = {
+        backgroundDimensions: {
+          renderDimensions: { width: 400, height: 600 }
+        }
+      };
+
+      // Mock the background to be smaller than template render size
+      mockBackgroundImg.getBoundingClientRect.mockReturnValue({
+        left: 100,
+        top: 50,
+        width: 320, // 80% of 400
+        height: 480, // 80% of 600
+        right: 420,
+        bottom: 530
+      });
+
+      SpritePositioning.positionSpriteWithScaling(
+        mockSpriteElement, 
+        templateCoords, 
+        mockTemplate, 
+        mockBackgroundImg, 
+        mockContainer
+      );
+
+      expect(mockSpriteElement.style.position).toBe('absolute');
+      // Coordinates should be scaled: 100 * 0.8 = 80, plus container offset
+      expect(mockSpriteElement.style.left).toBe('130px'); // 50 + 80
+      expect(mockSpriteElement.style.top).toBe('145px'); // 25 + 120 (150 * 0.8)
+      // Dimensions should be scaled too
+      expect(mockSpriteElement.style.width).toBe('55px'); // 69 * 0.8 = 55.2 rounded
+      expect(mockSpriteElement.style.height).toBe('51px'); // 64 * 0.8 = 51.2 rounded
+    });
+
+    it('should fallback to direct positioning when template has no background dimensions', () => {
+      const templateCoords = {
+        renderCoordinates: { x: 100, y: 150 },
+        renderDimensions: { width: 69, height: 64 }
+      };
+
+      const mockTemplate = {
+        name: 'test template'
+      };
+
+      SpritePositioning.positionSpriteWithScaling(
+        mockSpriteElement, 
+        templateCoords, 
+        mockTemplate, 
+        mockBackgroundImg, 
+        mockContainer
+      );
+
+      expect(mockSpriteElement.style.position).toBe('absolute');
+      // Should use direct coordinates without scaling
+      expect(mockSpriteElement.style.left).toBe('150px'); // 50 + 100
+      expect(mockSpriteElement.style.top).toBe('175px'); // 25 + 150
+    });
+
+    it('should handle missing background or container gracefully', () => {
+      const templateCoords = {
+        renderCoordinates: { x: 100, y: 150 }
+      };
+
+      const mockTemplate = {
+        backgroundDimensions: {
+          renderDimensions: { width: 400, height: 600 }
+        }
+      };
+
+      global.document.getElementById.mockReturnValue(null);
+
+      // Should not throw an error
+      expect(() => {
+        SpritePositioning.positionSpriteWithScaling(
+          mockSpriteElement, 
+          templateCoords, 
+          mockTemplate
+        );
+      }).not.toThrow();
+
+      expect(mockSpriteElement.style.position).toBe('');
+    });
+  });
+
   describe('getDebugInfo', () => {
     it('should return debug information when context is valid', () => {
       const debugInfo = SpritePositioning.getDebugInfo();
