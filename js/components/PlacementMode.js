@@ -802,7 +802,6 @@ export class PlacementMode {
                     <button id="copy-positions">Copy JSON</button>
                     <button id="load-positions">Load JSON</button>
                     <button id="clear-positions">Clear All</button>
-                    <button id="test-drag-trash">Test Drag to Trash</button>
                 </div>
             `;
             document.getElementById('game-container').appendChild(placementPanel);
@@ -817,10 +816,6 @@ export class PlacementMode {
             
             document.getElementById('clear-positions').addEventListener('click', () => {
                 this.clearAllPositions();
-            });
-            
-            document.getElementById('test-drag-trash').addEventListener('click', () => {
-                this.testDragToTrash();
             });
             
             document.getElementById('place-all-sprites').addEventListener('click', () => {
