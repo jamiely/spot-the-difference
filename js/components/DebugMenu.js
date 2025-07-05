@@ -52,7 +52,15 @@ export class DebugMenu {
                         <button id="debug-close" class="debug-close-btn">×</button>
                     </div>
                     <div class="debug-content">
-                        <p>Debug menu placeholder</p>
+                        <div class="debug-section">
+                            <label for="background-select">Background:</label>
+                            <div class="background-controls">
+                                <select id="background-select">
+                                    <option value="">Loading...</option>
+                                </select>
+                                <button id="load-background">Load</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="debug-footer">
                         <small>Press "?" to toggle • ESC to close</small>
@@ -124,6 +132,50 @@ export class DebugMenu {
                     padding: 1rem;
                 }
                 
+                .debug-section {
+                    margin-bottom: 1rem;
+                }
+                
+                .debug-section label {
+                    display: block;
+                    margin-bottom: 0.5rem;
+                    font-weight: bold;
+                    color: #555;
+                }
+                
+                .background-controls {
+                    display: flex;
+                    gap: 0.5rem;
+                    align-items: center;
+                }
+                
+                .background-controls select {
+                    flex: 1;
+                    padding: 0.5rem;
+                    border: 1px solid #ccc;
+                    border-radius: 4px;
+                    font-size: 14px;
+                }
+                
+                .background-controls button {
+                    padding: 0.5rem 1rem;
+                    background: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 14px;
+                }
+                
+                .background-controls button:hover {
+                    background: #0056b3;
+                }
+                
+                .background-controls button:disabled {
+                    background: #ccc;
+                    cursor: not-allowed;
+                }
+                
                 .debug-footer {
                     padding: 0.5rem 1rem;
                     border-top: 1px solid #eee;
@@ -140,11 +192,18 @@ export class DebugMenu {
         
         // Set up event listeners for debug menu
         this.setupDebugMenuListeners();
+        
+        // Load available backgrounds
+        this.loadAvailableBackgrounds();
     }
     
     setupDebugMenuListeners() {
         document.getElementById('debug-close').addEventListener('click', () => {
             this.hideDebugMenu();
+        });
+        
+        document.getElementById('load-background').addEventListener('click', () => {
+            this.loadSelectedBackground();
         });
         
         // Click outside to close
@@ -153,5 +212,75 @@ export class DebugMenu {
                 this.hideDebugMenu();
             }
         });
+    }
+    
+    async loadAvailableBackgrounds() {
+        try {
+            // Get available backgrounds from the game's background loader
+            if (this.game.backgroundLoader && this.game.backgroundLoader.loadedBackgrounds) {
+                this.populateBackgroundDropdown(this.game.backgroundLoader.loadedBackgrounds);
+            } else {
+                // Try to load backgrounds if not already loaded
+                await this.game.backgroundLoader.loadAvailableBackgrounds();
+                this.populateBackgroundDropdown(this.game.backgroundLoader.loadedBackgrounds);
+            }
+        } catch (error) {
+            console.error('Failed to load available backgrounds:', error);
+            this.populateBackgroundDropdown([]);
+        }
+    }
+    
+    populateBackgroundDropdown(backgrounds) {
+        const select = document.getElementById('background-select');
+        const loadButton = document.getElementById('load-background');
+        
+        // Clear existing options
+        select.innerHTML = '';
+        
+        if (backgrounds.length === 0) {
+            select.innerHTML = '<option value="">No backgrounds available</option>';
+            loadButton.disabled = true;
+            return;
+        }
+        
+        // Add default option
+        select.innerHTML = '<option value="">Select a background...</option>';
+        
+        // Add background options
+        backgrounds.forEach(background => {
+            const option = document.createElement('option');
+            option.value = background;
+            option.textContent = background.split('/').pop().replace(/\.[^/.]+$/, ""); // Remove extension
+            select.appendChild(option);
+        });
+        
+        loadButton.disabled = false;
+    }
+    
+    async loadSelectedBackground() {
+        const select = document.getElementById('background-select');
+        const selectedBackground = select.value;
+        
+        if (!selectedBackground) {
+            alert('Please select a background first.');
+            return;
+        }
+        
+        try {
+            console.log('Loading background:', selectedBackground);
+            
+            // Dispatch background change request event
+            const event = new CustomEvent('requestBackgroundChange', {
+                detail: { background: selectedBackground }
+            });
+            document.dispatchEvent(event);
+            
+            // Hide debug menu after loading
+            this.hideDebugMenu();
+            
+        } catch (error) {
+            console.error('Failed to load background:', error);
+            alert('Failed to load background: ' + error.message);
+        }
     }
 }

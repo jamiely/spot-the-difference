@@ -200,6 +200,17 @@ describe('Game', () => {
     
     await game.handleBackgroundChangeRequest(mockEvent);
     
-    expect(game.backgroundLoader.loadBackgroundImage).toHaveBeenCalledWith('new-background.png');
+    expect(game.backgroundLoader.loadBackgroundImage).toHaveBeenCalledWith('./backgrounds/new-background.png');
+  });
+
+  it('should handle background change requests with full path', async () => {
+    const mockEvent = { 
+      background: './backgrounds/full-path-background.png' 
+    }; 
+    game.isGameActive = true;
+    
+    await game.handleBackgroundChangeRequest(mockEvent);
+    
+    expect(game.backgroundLoader.loadBackgroundImage).toHaveBeenCalledWith('./backgrounds/full-path-background.png');
   });
 });

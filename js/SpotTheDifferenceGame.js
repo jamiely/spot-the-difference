@@ -2,6 +2,7 @@ import { Game } from './Game.js';
 import { SpriteManager } from './components/SpriteManager.js';
 import { SPRITE_CONFIG } from './config/SpriteConfig.js';
 import { ScalingUtils } from './utils/ScalingUtils.js';
+import { getSpriteCountForBackground } from './config/BoundingBoxConfig.js';
 
 export class SpotTheDifferenceGame extends Game {
     constructor() {
@@ -463,6 +464,166 @@ export class SpotTheDifferenceGame extends Game {
             this.generateDifferences();
             
             console.log('Game mode restored with template:', this.currentTemplate.name);
+        }
+    }
+    
+    async handleBackgroundChangeRequest(detail) {
+        console.log('Background change requested for spot the difference game', detail);
+        if (this.isGameActive) {
+            const { background } = detail;
+            
+            try {
+                // Construct full path for background image
+                const backgroundPath = background.startsWith('./') ? background : `./backgrounds/${background}`;
+                
+                // Load the new background image
+                const backgroundImg = await this.backgroundLoader.loadBackgroundImage(backgroundPath);
+                console.log('New background loaded successfully:', backgroundImg.src);
+                
+                // Set background for both sides
+                this.setBackgroundImage(backgroundImg, 'left');
+                this.setBackgroundImage(backgroundImg, 'right');
+                
+                // Update current background filename (store just the filename)
+                this.currentBackgroundFilename = background.startsWith('./') ? background.split('/').pop() : background;
+                
+                // Load predefined bounding boxes for this background if edit mode doesn't have custom ones
+                this.loadBackgroundBoundingBoxes();
+                
+                // Clear existing sprites
+                this.leftSpriteManager.clearSprites();
+                this.rightSpriteManager.clearSprites();
+                this.clearDifferenceMarkers();
+                
+                // Wait for background images to be properly loaded and positioned
+                await this.waitForImageLoad('background-image-left');
+                await this.waitForImageLoad('background-image-right');
+                
+                // Add a small delay to ensure backgrounds are fully rendered
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                // Generate random sprites for the new background
+                await this.generateRandomSpritesForBackground();
+                
+                console.log(`Background changed to: ${background} with random sprites generated`);
+            } catch (error) {
+                console.error(`Failed to change background to ${background}:`, error);
+            }
+        }
+    }
+    
+    async generateRandomSpritesForBackground() {
+        try {
+            // Get bounding boxes for sprite placement
+            let boundingBoxes = this.editMode.getBoundingBoxes();
+            
+            // If no bounding boxes available, create default ones for the background area
+            if (boundingBoxes.length === 0) {
+                console.log('No bounding boxes found, creating default ones for background area');
+                boundingBoxes = this.createDefaultBoundingBoxes();
+                this.editMode.setBoundingBoxes(boundingBoxes);
+            }
+            
+            // Determine sprite count based on background or use default
+            let spriteCount = this.currentBackgroundFilename ? 
+                getSpriteCountForBackground(this.currentBackgroundFilename) : 25;
+            
+            // If using a single default bounding box, use a more reasonable sprite count
+            if (boundingBoxes.length === 1 && boundingBoxes[0].id && boundingBoxes[0].id > Date.now() - 1000) {
+                spriteCount = Math.min(spriteCount, 15); // Limit to 15 sprites for single bounding box
+                console.log(`Using reduced sprite count (${spriteCount}) for single default bounding box`);
+            }
+            
+            console.log(`Generating ${spriteCount} random sprites for background: ${this.currentBackgroundFilename} using ${boundingBoxes.length} bounding boxes`);
+            
+            // Generate sprites for left side
+            const leftSprites = await this.leftSpriteManager.displayAllSprites(boundingBoxes, spriteCount);
+            console.log(`Generated ${leftSprites} sprites on left side`);
+            
+            // Create matching sprites on right side by copying from left side
+            await this.copySpritesFromLeftToRight();
+            
+            // Generate differences for the spot-the-difference game
+            this.generateDifferences();
+            
+            console.log(`Spot the difference game ready: ${this.differences.length} differences to find`);
+            
+        } catch (error) {
+            console.error('Failed to generate random sprites for background:', error);
+        }
+    }
+    
+    createDefaultBoundingBoxes() {
+        // Get the background image dimensions
+        const leftBg = document.getElementById('background-image-left');
+        
+        // Get the actual rendered size of the background image
+        const bgRect = leftBg.getBoundingClientRect();
+        const width = bgRect.width;
+        const height = bgRect.height;
+        
+        // Create a single bounding box that covers the entire background
+        const defaultBoxes = [
+            { 
+                id: Date.now(), 
+                x: 0, 
+                y: 0, 
+                width: width, 
+                height: height 
+            }
+        ];
+        
+        console.log(`Created single bounding box covering entire background: ${width}x${height}`);
+        return defaultBoxes;
+    }
+    
+    async copySpritesFromLeftToRight() {
+        try {
+            const leftSprites = this.leftSpriteManager.activeSprites;
+            console.log(`Copying ${leftSprites.length} sprites from left to right side`);
+            
+            for (const leftSprite of leftSprites) {
+                // Get sprite source and position from left sprite
+                const spriteSrc = leftSprite.dataset.spriteSrc || leftSprite.src.split('/').pop();
+                const leftContainer = leftSprite.parentElement;
+                const leftBg = document.getElementById('background-image-left');
+                const rightBg = document.getElementById('background-image-right');
+                
+                // Calculate sprite position relative to background
+                const leftContainerRect = leftContainer.getBoundingClientRect();
+                const leftBgRect = leftBg.getBoundingClientRect();
+                const spriteRect = leftSprite.getBoundingClientRect();
+                
+                // Position relative to background
+                const relativeX = spriteRect.left - leftBgRect.left;
+                const relativeY = spriteRect.top - leftBgRect.top;
+                
+                // Create corresponding sprite on right side
+                const rightSprite = await this.rightSpriteManager.createSpriteElement(spriteSrc);
+                if (rightSprite) {
+                    // Position the right sprite at the same relative position
+                    const rightContainer = document.getElementById('game-board-right');
+                    const rightContainerRect = rightContainer.getBoundingClientRect();
+                    const rightBgRect = rightBg.getBoundingClientRect();
+                    
+                    const rightBgOffsetX = rightBgRect.left - rightContainerRect.left;
+                    const rightBgOffsetY = rightBgRect.top - rightContainerRect.top;
+                    
+                    rightSprite.style.position = 'absolute';
+                    rightSprite.style.left = (rightBgOffsetX + relativeX) + 'px';
+                    rightSprite.style.top = (rightBgOffsetY + relativeY) + 'px';
+                    rightSprite.style.width = leftSprite.style.width;
+                    rightSprite.style.height = leftSprite.style.height;
+                    
+                    rightContainer.appendChild(rightSprite);
+                    this.rightSpriteManager.activeSprites.push(rightSprite);
+                }
+            }
+            
+            console.log(`Successfully copied ${this.rightSpriteManager.activeSprites.length} sprites to right side`);
+            
+        } catch (error) {
+            console.error('Failed to copy sprites from left to right:', error);
         }
     }
 }

@@ -254,13 +254,16 @@ export class Game {
             const { background } = detail;
             
             try {
+                // Construct full path for background image
+                const backgroundPath = background.startsWith('./') ? background : `./backgrounds/${background}`;
+                
                 // Load the new background image
-                const backgroundImg = await this.backgroundLoader.loadBackgroundImage(background);
+                const backgroundImg = await this.backgroundLoader.loadBackgroundImage(backgroundPath);
                 console.log('New background loaded successfully:', backgroundImg.src);
                 this.setBackgroundImage(backgroundImg);
                 
-                // Update current background filename
-                this.currentBackgroundFilename = background;
+                // Update current background filename (store just the filename)
+                this.currentBackgroundFilename = background.startsWith('./') ? background.split('/').pop() : background;
                 
                 // Load predefined bounding boxes for this background if edit mode doesn't have custom ones
                 this.loadBackgroundBoundingBoxes();

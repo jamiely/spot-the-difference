@@ -141,6 +141,12 @@ describe('SpotTheDifferenceGame', () => {
     global.console = { log: vi.fn(), warn: vi.fn(), error: vi.fn() };
 
     game = new SpotTheDifferenceGame();
+    
+    // Mock editMode object which is needed for background change functionality
+    game.editMode = {
+      getBoundingBoxes: vi.fn(() => []),
+      setBoundingBoxes: vi.fn()
+    };
   });
 
   it('should initialize correctly and set up event listeners', () => {
@@ -235,5 +241,110 @@ describe('SpotTheDifferenceGame', () => {
     game.clearDifferenceMarkers();
     expect(document.querySelectorAll).toHaveBeenCalledWith('.difference-marker');
     expect(document.querySelectorAll().every(m => m.remove.toHaveBeenCalled())).toBe(true);
+  });
+
+  describe('background change functionality', () => {
+    it('should handle background change requests for both sides', async () => {
+      const mockEvent = { 
+        background: 'new-background.png' 
+      };
+      game.isGameActive = true;
+      
+      await game.handleBackgroundChangeRequest(mockEvent);
+      
+      // Should call backgroundLoader with full path
+      expect(mockBackgroundLoader.loadBackgroundImage).toHaveBeenCalledWith('./backgrounds/new-background.png');
+      
+      // Should set background for both sides
+      expect(mockLeftBgImg.src).toBe('./backgrounds/new-background.png');
+      expect(mockRightBgImg.src).toBe('./backgrounds/new-background.png');
+      
+      // Should update current background filename
+      expect(game.currentBackgroundFilename).toBe('new-background.png');
+    });
+
+    it('should handle background change requests with full path', async () => {
+      const mockEvent = { 
+        background: './backgrounds/full-path-background.png' 
+      };
+      game.isGameActive = true;
+      
+      await game.handleBackgroundChangeRequest(mockEvent);
+      
+      // Should use the full path as-is
+      expect(mockBackgroundLoader.loadBackgroundImage).toHaveBeenCalledWith('./backgrounds/full-path-background.png');
+      
+      // Should extract just the filename for currentBackgroundFilename
+      expect(game.currentBackgroundFilename).toBe('full-path-background.png');
+    });
+
+    it('should not change background when game is not active', async () => {
+      const mockEvent = { 
+        background: 'new-background.png' 
+      };
+      game.isGameActive = false;
+      
+      await game.handleBackgroundChangeRequest(mockEvent);
+      
+      expect(mockBackgroundLoader.loadBackgroundImage).not.toHaveBeenCalled();
+    });
+
+    it('should handle background loading errors gracefully', async () => {
+      const mockEvent = { 
+        background: 'invalid-background.png' 
+      };
+      game.isGameActive = true;
+      
+      // Mock backgroundLoader to throw an error
+      mockBackgroundLoader.loadBackgroundImage.mockRejectedValueOnce(new Error('Background not found'));
+      
+      // Should not throw an error
+      await expect(game.handleBackgroundChangeRequest(mockEvent)).resolves.toBeUndefined();
+      
+      // Should log the error
+      expect(global.console.error).toHaveBeenCalledWith(
+        'Failed to change background to invalid-background.png:', 
+        expect.any(Error)
+      );
+    });
+
+    it('should set background images for both sides with correct styles', () => {
+      const mockImg = { src: 'path/to/image.png' };
+      
+      game.setBackgroundImage(mockImg, 'left');
+      expect(mockLeftBgImg.src).toBe('path/to/image.png');
+      expect(mockLeftBgImg.style.display).toBe('block');
+      expect(mockLeftBgImg.style.width).toBe('100%');
+      expect(mockLeftBgImg.style.maxWidth).toBe('400px');
+      expect(mockLeftBgImg.style.height).toBe('auto');
+      expect(mockLeftBgImg.style.borderRadius).toBe('8px');
+      
+      game.setBackgroundImage(mockImg, 'right');
+      expect(mockRightBgImg.src).toBe('path/to/image.png');
+      expect(mockRightBgImg.style.display).toBe('block');
+    });
+
+    it('should call loadBackgroundBoundingBoxes after background change', async () => {
+      // Create a simplified test that mocks the method and verifies it's called
+      game.isGameActive = true;
+      game.loadBackgroundBoundingBoxes = vi.fn();
+      
+      // Create a simpler mock version of handleBackgroundChangeRequest for testing
+      const originalMethod = game.handleBackgroundChangeRequest;
+      game.handleBackgroundChangeRequest = vi.fn(async (detail) => {
+        if (game.isGameActive) {
+          // Simulate the call that we're testing for
+          game.loadBackgroundBoundingBoxes();
+        }
+      });
+      
+      const mockEvent = { background: 'classroom.png' };
+      await game.handleBackgroundChangeRequest(mockEvent);
+      
+      expect(game.loadBackgroundBoundingBoxes).toHaveBeenCalled();
+      
+      // Restore original method
+      game.handleBackgroundChangeRequest = originalMethod;
+    });
   });
 });

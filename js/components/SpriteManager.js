@@ -260,6 +260,11 @@ export class SpriteManager {
     async displayAllSprites(boundingBoxes = [], spriteCount = 50) {
         this.clearSprites();
         
+        // Ensure sprites are loaded before trying to generate random ones
+        if (this.loadedSprites.length === 0) {
+            await this.loadAvailableSprites();
+        }
+        
         // Randomly select the specified number of sprites from all available sprites
         const randomSprites = this.getRandomSprites(spriteCount);
         
@@ -277,13 +282,21 @@ export class SpriteManager {
                     
                     const currentSpriteSrc = randomSprites[spriteIndex];
                     
-                    const spriteElement = await this.createSpriteElement(
-                        currentSpriteSrc, 
-                        boundingBoxes, 
-                        boxIndex
-                    );
-                    this.container.appendChild(spriteElement);
-                    this.activeSprites.push(spriteElement);
+                    try {
+                        const spriteElement = await this.createSpriteElement(
+                            currentSpriteSrc, 
+                            boundingBoxes, 
+                            boxIndex
+                        );
+                        if (spriteElement) {
+                            this.container.appendChild(spriteElement);
+                            this.activeSprites.push(spriteElement);
+                        } else {
+                            console.warn(`Failed to create sprite element for ${currentSpriteSrc}`);
+                        }
+                    } catch (error) {
+                        console.error(`Error creating sprite ${currentSpriteSrc}:`, error);
+                    }
                     
                     spriteIndex++;
                     
@@ -296,16 +309,24 @@ export class SpriteManager {
         } else {
             // No bounding boxes, use full background with random selection
             for (const spriteSrc of randomSprites) {
-                const spriteElement = await this.createSpriteElement(spriteSrc, boundingBoxes);
-                this.container.appendChild(spriteElement);
-                this.activeSprites.push(spriteElement);
+                try {
+                    const spriteElement = await this.createSpriteElement(spriteSrc, boundingBoxes);
+                    if (spriteElement) {
+                        this.container.appendChild(spriteElement);
+                        this.activeSprites.push(spriteElement);
+                    } else {
+                        console.warn(`Failed to create sprite element for ${spriteSrc}`);
+                    }
+                } catch (error) {
+                    console.error(`Error creating sprite ${spriteSrc}:`, error);
+                }
                 
                 // Small delay between each sprite (optional)
                 await new Promise(resolve => setTimeout(resolve, 10));
             }
         }
         
-        return randomSprites.length;
+        return this.activeSprites.length;
     }
     
     calculateSpriteDistribution(boundingBoxes, totalSprites) {

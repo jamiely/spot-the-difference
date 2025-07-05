@@ -163,6 +163,8 @@ describe('SpriteManager', () => {
   });
 
   it('should handle empty sprite list gracefully', async () => {
+    // Mock loadAvailableSprites to return empty array to simulate no sprites available
+    spriteManager.loadAvailableSprites = vi.fn().mockResolvedValue([]);
     spriteManager.loadedSprites = [];
     const boundingBoxes = [{ x: 10, y: 10, width: 50, height: 50 }];
 
