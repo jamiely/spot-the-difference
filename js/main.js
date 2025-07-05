@@ -1,7 +1,9 @@
 import { SpotTheDifferenceGame } from './SpotTheDifferenceGame.js';
+import { DebugMenu } from './components/DebugMenu.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const game = new SpotTheDifferenceGame();
+    const debugMenu = new DebugMenu(game);
     
     document.addEventListener('gameStarted', () => {
         console.log('Game started!');
