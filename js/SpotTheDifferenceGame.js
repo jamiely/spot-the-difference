@@ -348,8 +348,10 @@ export class SpotTheDifferenceGame extends Game {
         this.createDifferenceMarker(difference.centerX, difference.centerY, 'left', '✓', '#28a745');
         this.createDifferenceMarker(difference.centerX, difference.centerY, 'right', '✓', '#28a745');
         
-        // Update score
-        this.scoreDisplay.incrementScore();
+        // Update score - dispatch proper event with total found count
+        document.dispatchEvent(new CustomEvent('differenceFound', {
+            detail: { totalFound: this.foundDifferences.length }
+        }));
         
         console.log(`Difference found: ${difference.id} (${this.foundDifferences.length}/${this.differences.length})`);
         
@@ -582,7 +584,9 @@ export class SpotTheDifferenceGame extends Game {
             const leftSprites = this.leftSpriteManager.activeSprites;
             console.log(`Copying ${leftSprites.length} sprites from left to right side`);
             
-            for (const leftSprite of leftSprites) {
+            for (let i = 0; i < leftSprites.length; i++) {
+                const leftSprite = leftSprites[i];
+                
                 // Get sprite source and position from left sprite
                 const spriteSrc = leftSprite.dataset.spriteSrc || leftSprite.src.split('/').pop();
                 const leftContainer = leftSprite.parentElement;
@@ -614,6 +618,16 @@ export class SpotTheDifferenceGame extends Game {
                     rightSprite.style.top = (rightBgOffsetY + relativeY) + 'px';
                     rightSprite.style.width = leftSprite.style.width;
                     rightSprite.style.height = leftSprite.style.height;
+                    
+                    // Add dataset properties needed for difference detection
+                    const spriteId = `sprite_${i + 1}`;
+                    rightSprite.dataset.spriteId = spriteId;
+                    
+                    // Calculate center coordinates for difference detection (background-relative)
+                    const spriteWidth = parseInt(rightSprite.style.width) || SPRITE_CONFIG.TARGET_SIZE_PX;
+                    const spriteHeight = parseInt(rightSprite.style.height) || SPRITE_CONFIG.TARGET_SIZE_PX;
+                    rightSprite.dataset.centerX = relativeX + spriteWidth / 2;
+                    rightSprite.dataset.centerY = relativeY + spriteHeight / 2;
                     
                     rightContainer.appendChild(rightSprite);
                     this.rightSpriteManager.activeSprites.push(rightSprite);

@@ -122,6 +122,7 @@ describe('SpotTheDifferenceGame', () => {
       }),
       querySelector: vi.fn(() => ({ style: { display: '' } })),
       addEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
       querySelectorAll: vi.fn(() => []), // Default for .difference-marker
       createElement: vi.fn((tagName) => {
         const element = {
@@ -217,6 +218,12 @@ describe('SpotTheDifferenceGame', () => {
     game.markDifferenceFound(game.differences[0], 'right', 35, 35);
     expect(game.isGameActive).toBe(false);
     expect(global.alert).toHaveBeenCalled();
+    expect(document.dispatchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'differenceFound',
+        detail: { totalFound: 1 }
+      })
+    );
   });
 
   it('should reset game', () => {
