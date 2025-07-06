@@ -16,6 +16,9 @@ export class EditMode {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'E' || e.key === 'e') {
                 this.toggleEditMode();
+            } else if (e.key === 'Escape' && this.isActive) {
+                e.preventDefault();
+                this.toggleEditMode();
             }
         });
     }
@@ -285,7 +288,13 @@ export class EditMode {
             });
         }
         editPanel.style.display = 'block';
-        this.updateJsonExport();
+        
+        // Only update JSON export if textarea is empty, to preserve manual edits
+        const textarea = document.getElementById('bounding-boxes-json');
+        if (textarea && !textarea.value.trim()) {
+            this.updateJsonExport();
+        }
+        
         this.updateBackgroundInfo();
     }
     
