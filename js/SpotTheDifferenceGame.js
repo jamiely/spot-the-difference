@@ -4,6 +4,7 @@ import { SPRITE_CONFIG } from './config/SpriteConfig.js';
 import { ScalingUtils } from './utils/ScalingUtils.js';
 import { getSpriteCountForBackground } from './config/BoundingBoxConfig.js';
 import { LevelManager } from './components/LevelManager.js';
+import { GameModal } from './components/GameModal.js';
 
 export class SpotTheDifferenceGame extends Game {
     constructor() {
@@ -22,6 +23,9 @@ export class SpotTheDifferenceGame extends Game {
         // Level progression system
         this.levelManager = new LevelManager(this.templateManager, this.backgroundLoader);
         this.currentLevelData = null;
+        
+        // Modal for user interactions (replaces alert/confirm)
+        this.modal = new GameModal();
         
         // Test mode to avoid prompts during testing
         // Only enable test mode in actual unit test environments (vitest/jest)
@@ -289,14 +293,14 @@ export class SpotTheDifferenceGame extends Game {
         // For now, we'll just log it
     }
     
-    handleGameComplete() {
+    async handleGameComplete() {
         console.log('🎉 GAME COMPLETE! All levels finished!');
         this.isGameActive = false;
         this.updateButtonStates();
         
         if (this.isTestMode) {
             // In test mode, just show an alert and return
-            alert('Game completed! All levels finished!');
+            await this.modal.showAlert('Game Complete', 'Game completed! All levels finished!');
             return;
         }
         
@@ -308,7 +312,7 @@ export class SpotTheDifferenceGame extends Game {
                        `• Total levels completed: ${stats.totalCompleted}/${stats.totalLevels}\n\n` +
                        `Would you like to play again?`;
         
-        const playAgain = confirm(message);
+        const playAgain = await this.modal.showConfirm('Game Complete!', message);
         
         if (playAgain) {
             this.restartEntireGame();
@@ -640,7 +644,7 @@ export class SpotTheDifferenceGame extends Game {
             // In test mode, use the old simple behavior
             this.isGameActive = false;
             this.updateButtonStates();
-            alert(`Congratulations! You found all ${this.differences.length} differences!`);
+            await this.modal.showAlert('Level Complete', `Congratulations! You found all ${this.differences.length} differences!`);
             return;
         }
         
@@ -660,7 +664,7 @@ export class SpotTheDifferenceGame extends Game {
         if (nextLevelData) {
             // There are more levels
             const message = `🎉 ${levelInfo} completed!\nYou found all ${this.differences.length} differences!\n\nReady for the next level?`;
-            const playNext = confirm(message);
+            const playNext = await this.modal.showConfirm('Level Complete!', message);
             
             if (playNext) {
                 this.loadNextLevel();
