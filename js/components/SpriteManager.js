@@ -108,11 +108,13 @@ export class SpriteManager {
         const spriteWidth = parseInt(sprite.style.width) || SPRITE_CONFIG.TARGET_SIZE_PX;
         const spriteHeight = parseInt(sprite.style.height) || SPRITE_CONFIG.TARGET_SIZE_PX;
         
-        // Create collision detector with current sprite positions
+        // Create collision detector with current sprite positions and 70% max obscuration
         const collisionDetector = SpritePositioning.createCollisionDetector(
             this.spritePositions, 
             spriteWidth, 
-            spriteHeight
+            spriteHeight,
+            5, // buffer
+            70 // max obscuration percentage
         );
         
         // Get background context

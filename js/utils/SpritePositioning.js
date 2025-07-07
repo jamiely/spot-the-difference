@@ -228,17 +228,99 @@ export class SpritePositioning {
      * @param {number} spriteWidth - Width of the sprite
      * @param {number} spriteHeight - Height of the sprite
      * @param {number} buffer - Buffer space around sprites
+     * @param {number} maxObscurationPercent - Maximum allowed obscuration percentage (default 70%)
      * @returns {Object} Collision detection functions
      */
-    static createCollisionDetector(existingPositions = [], spriteWidth = 80, spriteHeight = 80, buffer = 5) {
+    static createCollisionDetector(existingPositions = [], spriteWidth = 80, spriteHeight = 80, buffer = 5, maxObscurationPercent = 70) {
         return {
             /**
-             * Check if a position collides with existing sprites
+             * Calculate the intersection area between two rectangles
+             * @param {Object} rect1 - First rectangle {x, y, width, height}
+             * @param {Object} rect2 - Second rectangle {x, y, width, height}
+             * @returns {number} Intersection area
+             */
+            calculateIntersectionArea(rect1, rect2) {
+                const left = Math.max(rect1.x, rect2.x);
+                const right = Math.min(rect1.x + rect1.width, rect2.x + rect2.width);
+                const top = Math.max(rect1.y, rect2.y);
+                const bottom = Math.min(rect1.y + rect1.height, rect2.y + rect2.height);
+                
+                if (left >= right || top >= bottom) {
+                    return 0; // No intersection
+                }
+                
+                return (right - left) * (bottom - top);
+            },
+            
+            /**
+             * Check if placing a sprite at the given position would violate obscuration rules
+             * @param {number} x - X coordinate
+             * @param {number} y - Y coordinate
+             * @returns {Object} { hasViolation: boolean, violations: Array<Object> }
+             */
+            checkObscurationViolation(x, y) {
+                const newSprite = { x, y, width: spriteWidth, height: spriteHeight };
+                const violations = [];
+                
+                // Calculate total obscuration of the new sprite by all existing sprites
+                let totalNewSpriteObscurationArea = 0;
+                const newSpriteArea = spriteWidth * spriteHeight;
+                
+                // Check each existing sprite for violations
+                for (const existing of existingPositions) {
+                    // Calculate how much this existing sprite would obscure the new sprite
+                    const intersectionArea = this.calculateIntersectionArea(newSprite, existing);
+                    totalNewSpriteObscurationArea += intersectionArea;
+                    
+                    // Check if the new sprite would obscure this existing sprite
+                    const existingSpriteArea = existing.width * existing.height;
+                    const existingObscurationPercentage = (intersectionArea / existingSpriteArea) * 100;
+                    
+                    if (existingObscurationPercentage > maxObscurationPercent) {
+                        violations.push({
+                            type: 'existing_sprite_obscured',
+                            obscurationPercentage: existingObscurationPercentage,
+                            existingSprite: existing,
+                            message: `Existing sprite would be ${existingObscurationPercentage.toFixed(1)}% obscured (max ${maxObscurationPercent}%)`
+                        });
+                    }
+                }
+                
+                // Check if the new sprite would be too obscured by the combination of all existing sprites
+                const newSpriteObscurationPercentage = (totalNewSpriteObscurationArea / newSpriteArea) * 100;
+                if (newSpriteObscurationPercentage > maxObscurationPercent) {
+                    violations.push({
+                        type: 'new_sprite_obscured',
+                        obscurationPercentage: newSpriteObscurationPercentage,
+                        message: `New sprite would be ${newSpriteObscurationPercentage.toFixed(1)}% obscured (max ${maxObscurationPercent}%)`
+                    });
+                }
+                
+                return {
+                    hasViolation: violations.length > 0,
+                    violations: violations
+                };
+            },
+            
+            /**
+             * Check if a position collides with existing sprites (legacy method)
              * @param {number} x - X coordinate
              * @param {number} y - Y coordinate
              * @returns {boolean} True if collision detected
              */
             hasCollision(x, y) {
+                // Use the new obscuration check instead of simple buffer collision
+                const obscurationCheck = this.checkObscurationViolation(x, y);
+                return obscurationCheck.hasViolation;
+            },
+            
+            /**
+             * Check if a position has basic overlap with existing sprites (for buffer-based collision)
+             * @param {number} x - X coordinate
+             * @param {number} y - Y coordinate
+             * @returns {boolean} True if basic overlap detected
+             */
+            hasBasicCollision(x, y) {
                 for (const existing of existingPositions) {
                     if (x < existing.x + existing.width + buffer &&
                         x + spriteWidth + buffer > existing.x &&
@@ -257,26 +339,30 @@ export class SpritePositioning {
              * @param {number} areaWidth - Area width
              * @param {number} areaHeight - Area height
              * @param {number} maxAttempts - Maximum attempts to find position
-             * @returns {Object} { x, y, attempts }
+             * @returns {Object} { x, y, attempts, violations }
              */
             findNonCollidingPosition(areaX, areaY, areaWidth, areaHeight, maxAttempts = 50) {
                 const availableWidth = Math.max(1, areaWidth - spriteWidth);
                 const availableHeight = Math.max(1, areaHeight - spriteHeight);
+                let lastViolations = [];
                 
                 for (let attempt = 0; attempt < maxAttempts; attempt++) {
                     const x = areaX + Math.floor(Math.random() * availableWidth);
                     const y = areaY + Math.floor(Math.random() * availableHeight);
                     
-                    if (!this.hasCollision(x, y)) {
-                        return { x, y, attempts: attempt + 1 };
+                    const obscurationCheck = this.checkObscurationViolation(x, y);
+                    if (!obscurationCheck.hasViolation) {
+                        return { x, y, attempts: attempt + 1, violations: [] };
                     }
+                    
+                    lastViolations = obscurationCheck.violations;
                 }
                 
                 // If no non-colliding position found, use last attempt
                 const x = areaX + Math.floor(Math.random() * availableWidth);
                 const y = areaY + Math.floor(Math.random() * availableHeight);
-                console.warn('Could not find non-colliding position after', maxAttempts, 'attempts');
-                return { x, y, attempts: maxAttempts };
+                console.warn(`Could not find non-obscured position after ${maxAttempts} attempts. Last violations:`, lastViolations);
+                return { x, y, attempts: maxAttempts, violations: lastViolations };
             },
             
             /**
