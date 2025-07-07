@@ -106,6 +106,9 @@ export class SpotTheDifferenceGame extends Game {
     
     async loadNextLevel() {
         try {
+            // Always clear sprites and markers from previous level first
+            this.clearAllPreviousLevelData();
+            
             if (this.isTestMode) {
                 // In test mode, just load template1 like the old behavior
                 await this.loadTemplateForSpotTheDifference();
@@ -704,6 +707,64 @@ export class SpotTheDifferenceGame extends Game {
     
     clearDifferenceMarkers() {
         document.querySelectorAll('.difference-marker').forEach(marker => marker.remove());
+    }
+    
+    /**
+     * Comprehensively clear all data from previous level
+     * Ensures no sprites, markers, or game state carries over between levels
+     */
+    clearAllPreviousLevelData() {
+        console.log('Clearing all previous level data before loading next level');
+        
+        // Clear sprites from both sides
+        this.leftSpriteManager.clearSprites();
+        this.rightSpriteManager.clearSprites();
+        
+        // Clear all difference markers
+        this.clearDifferenceMarkers();
+        
+        // Reset game state arrays
+        this.differences = [];
+        this.foundDifferences = [];
+        
+        // Clear any orphaned sprite elements that might exist in the DOM
+        this.clearOrphanedSprites();
+        
+        // Clear any orphaned marker elements
+        this.clearOrphanedMarkers();
+        
+        console.log('Previous level data cleared successfully');
+    }
+    
+    /**
+     * Remove any sprite elements that might be orphaned in the DOM
+     */
+    clearOrphanedSprites() {
+        const leftBoard = document.getElementById('game-board-left');
+        const rightBoard = document.getElementById('game-board-right');
+        
+        // Remove all .game-sprite elements from both boards
+        [leftBoard, rightBoard].forEach(board => {
+            if (board) {
+                const orphanedSprites = board.querySelectorAll('.game-sprite');
+                orphanedSprites.forEach(sprite => {
+                    console.log('Removing orphaned sprite:', sprite);
+                    sprite.remove();
+                });
+            }
+        });
+    }
+    
+    /**
+     * Remove any marker elements that might be orphaned in the DOM
+     */
+    clearOrphanedMarkers() {
+        // Remove all difference markers from the entire document
+        const allMarkers = document.querySelectorAll('.difference-marker');
+        allMarkers.forEach(marker => {
+            console.log('Removing orphaned marker:', marker);
+            marker.remove();
+        });
     }
     
     setupModeTransitionListeners() {
