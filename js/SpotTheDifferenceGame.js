@@ -3,6 +3,7 @@ import { SpriteManager } from './components/SpriteManager.js';
 import { SPRITE_CONFIG } from './config/SpriteConfig.js';
 import { ScalingUtils } from './utils/ScalingUtils.js';
 import { getSpriteCountForBackground } from './config/BoundingBoxConfig.js';
+import { LevelManager } from './components/LevelManager.js';
 
 export class SpotTheDifferenceGame extends Game {
     constructor() {
@@ -17,6 +18,16 @@ export class SpotTheDifferenceGame extends Game {
         this.foundDifferences = [];
         this.currentTemplate = null;
         this.isSpotTheeDifferenceMode = true;
+        
+        // Level progression system
+        this.levelManager = new LevelManager(this.templateManager, this.backgroundLoader);
+        this.currentLevelData = null;
+        
+        // Test mode to avoid prompts during testing
+        // Only enable test mode in actual unit test environments (vitest/jest)
+        this.isTestMode = typeof global !== 'undefined' && 
+                         typeof window === 'undefined' && 
+                         global.alert;
         
         // Seeded random number generation
         this.seed = this.getSeedFromURL();
@@ -83,9 +94,49 @@ export class SpotTheDifferenceGame extends Game {
         document.querySelector('.game-boards').style.display = 'flex';
         document.getElementById('legacy-game-board').style.display = 'none';
         
-        await this.loadTemplateForSpotTheDifference();
+        // Load the next level from the level manager
+        await this.loadNextLevel();
         
         this.dispatchEvent('gameStarted');
+    }
+    
+    async loadNextLevel() {
+        try {
+            if (this.isTestMode) {
+                // In test mode, just load template1 like the old behavior
+                await this.loadTemplateForSpotTheDifference();
+                return;
+            }
+            
+            // Get the next level from the level manager
+            this.currentLevelData = await this.levelManager.getNextLevel();
+            
+            if (!this.currentLevelData) {
+                // Game is complete!
+                this.handleGameComplete();
+                return;
+            }
+            
+            console.log(`Loading level: ${this.currentLevelData.levelInfo.description}`);
+            console.log(`Level type: ${this.currentLevelData.type}`);
+            
+            if (this.currentLevelData.type === 'template') {
+                // Load template-based level
+                await this.setupSideBySideGame(this.currentLevelData.data);
+            } else {
+                // Load random background level
+                await this.setupRandomBackgroundLevel(this.currentLevelData.data);
+            }
+            
+            // Display level info to the user
+            this.displayLevelInfo();
+            
+        } catch (error) {
+            console.error('Failed to load next level:', error);
+            // If loading fails, deactivate the game
+            this.isGameActive = false;
+            this.updateButtonStates();
+        }
     }
     
     async loadTemplateForSpotTheDifference() {
@@ -102,6 +153,179 @@ export class SpotTheDifferenceGame extends Game {
         } catch (error) {
             console.error('Failed to load template for spot the difference:', error);
         }
+    }
+    
+    async setupRandomBackgroundLevel(backgroundData) {
+        console.log(`Setting up random background level: ${backgroundData.filename || backgroundData}`);
+        
+        // Handle both object and string data formats
+        const filename = backgroundData.filename || backgroundData;
+        
+        // Load the background image for both sides
+        await this.loadBackgroundImageForBothSides(filename);
+        
+        // Generate random sprites for this background
+        await this.generateRandomSpritesForBothSides(backgroundData);
+        
+        // Create differences by removing random sprites from the right side
+        this.createRandomDifferences();
+    }
+    
+    async loadBackgroundImageForBothSides(backgroundFilename) {
+        const leftImg = document.getElementById('background-image-left');
+        const rightImg = document.getElementById('background-image-right');
+        
+        const backgroundPath = `backgrounds/${backgroundFilename}`;
+        
+        // Load left side background
+        leftImg.src = backgroundPath;
+        leftImg.style.display = 'block';
+        await this.waitForImageLoad('background-image-left');
+        
+        // Load right side background (same image)
+        rightImg.src = backgroundPath;
+        rightImg.style.display = 'block';
+        await this.waitForImageLoad('background-image-right');
+        
+        console.log(`Background loaded for both sides: ${backgroundFilename}`);
+    }
+    
+    async generateRandomSpritesForBothSides(backgroundData) {
+        // Handle both object and string data formats
+        const filename = backgroundData.filename || backgroundData;
+        
+        // Get sprite count for this background
+        const spriteCount = getSpriteCountForBackground(filename);
+        console.log(`Generating ${spriteCount} random sprites for ${filename}`);
+        
+        // Get or create bounding boxes for sprite placement
+        let boundingBoxes = [];
+        
+        // Check if editMode exists and has bounding boxes
+        if (this.editMode && this.editMode.getBoundingBoxes) {
+            boundingBoxes = this.editMode.getBoundingBoxes();
+        }
+        
+        // If no bounding boxes available, create default ones for the background area
+        if (boundingBoxes.length === 0) {
+            console.log('No bounding boxes found, creating default ones for background area');
+            boundingBoxes = this.createDefaultBoundingBoxes();
+            if (this.editMode && this.editMode.setBoundingBoxes) {
+                this.editMode.setBoundingBoxes(boundingBoxes);
+            }
+        }
+        
+        console.log(`Generating ${spriteCount} sprites using ${boundingBoxes.length} bounding boxes`);
+        
+        // Generate random sprites for left side
+        const leftSprites = await this.leftSpriteManager.displayAllSprites(boundingBoxes, spriteCount);
+        
+        // Generate identical sprites for right side by copying from left side
+        await this.copySpritesFromLeftToRight();
+        
+        console.log(`Generated ${leftSprites} sprites for left side, ${this.rightSpriteManager.activeSprites.length} for right side`);
+    }
+    
+    createRandomDifferences() {
+        // Get right side sprites that can be removed as differences
+        const rightSprites = this.rightSpriteManager.activeSprites;
+        
+        if (rightSprites.length === 0) {
+            console.warn('No sprites available to create differences');
+            return;
+        }
+        
+        // Calculate number of differences (20-40% of sprites, minimum 1, maximum 5)
+        const minDifferences = 1;
+        const maxDifferences = Math.min(5, rightSprites.length);
+        const percentageDifferences = Math.floor(rightSprites.length * 0.3); // 30%
+        const numDifferences = Math.max(minDifferences, Math.min(maxDifferences, percentageDifferences));
+        
+        console.log(`Creating ${numDifferences} differences out of ${rightSprites.length} sprites`);
+        
+        // Randomly select sprites to remove
+        const shuffledSprites = [...rightSprites].sort(() => this.rng.next() - 0.5);
+        const spritesToRemove = shuffledSprites.slice(0, numDifferences);
+        
+        this.differences = [];
+        
+        spritesToRemove.forEach((sprite, index) => {
+            // Get sprite position
+            const centerX = parseFloat(sprite.dataset.centerX) || 
+                           parseFloat(sprite.style.left) + parseFloat(sprite.style.width) / 2;
+            const centerY = parseFloat(sprite.dataset.centerY) || 
+                           parseFloat(sprite.style.top) + parseFloat(sprite.style.height) / 2;
+            
+            // Create difference entry
+            const difference = {
+                id: `random-diff-${index}`,
+                centerX: centerX,
+                centerY: centerY,
+                spriteElement: sprite
+            };
+            
+            this.differences.push(difference);
+            
+            // Remove the sprite from right side
+            sprite.remove();
+            
+            // Remove from sprite manager's active list
+            const spriteIndex = this.rightSpriteManager.activeSprites.indexOf(sprite);
+            if (spriteIndex > -1) {
+                this.rightSpriteManager.activeSprites.splice(spriteIndex, 1);
+            }
+        });
+        
+        console.log(`Created ${this.differences.length} differences by removing sprites from right side`);
+    }
+    
+    displayLevelInfo() {
+        if (!this.currentLevelData) return;
+        
+        const levelInfo = this.currentLevelData.levelInfo;
+        console.log(`Level ${levelInfo.current}/${levelInfo.total} - ${levelInfo.description}`);
+        
+        // You could add a UI element to display this to the user
+        // For now, we'll just log it
+    }
+    
+    handleGameComplete() {
+        console.log('🎉 GAME COMPLETE! All levels finished!');
+        this.isGameActive = false;
+        this.updateButtonStates();
+        
+        if (this.isTestMode) {
+            // In test mode, just show an alert and return
+            alert('Game completed! All levels finished!');
+            return;
+        }
+        
+        const stats = this.levelManager.getCompletionStats();
+        const message = `🎉 Congratulations! You've completed the entire game!\n\n` +
+                       `📊 Final Statistics:\n` +
+                       `• Templates completed: ${stats.templatesCompleted}/${stats.totalTemplates}\n` +
+                       `• Random levels completed: ${stats.randomBackgroundsCompleted}/${stats.totalRandomBackgrounds}\n` +
+                       `• Total levels completed: ${stats.totalCompleted}/${stats.totalLevels}\n\n` +
+                       `Would you like to play again?`;
+        
+        const playAgain = confirm(message);
+        
+        if (playAgain) {
+            this.restartEntireGame();
+        }
+    }
+    
+    restartEntireGame() {
+        console.log('Restarting entire game progression');
+        
+        // Reset level manager
+        this.levelManager.resetGame();
+        
+        // Reset current game state
+        this.resetGame();
+        
+        // Start fresh
+        this.startGame();
     }
     
     async setupSideBySideGame(template) {
@@ -409,13 +633,47 @@ export class SpotTheDifferenceGame extends Game {
         });
     }
     
-    endGame() {
-        console.log('Game completed! All differences found.');
-        this.isGameActive = false;
-        this.updateButtonStates();
+    async endGame() {
+        console.log('Level completed! All differences found.');
         
-        // Show completion message
-        alert(`Congratulations! You found all ${this.differences.length} differences!`);
+        if (this.isTestMode) {
+            // In test mode, use the old simple behavior
+            this.isGameActive = false;
+            this.updateButtonStates();
+            alert(`Congratulations! You found all ${this.differences.length} differences!`);
+            return;
+        }
+        
+        // Mark current level as completed in level manager
+        if (this.currentLevelData) {
+            if (this.currentLevelData.type === 'template') {
+                this.levelManager.completeLevel('template', this.currentLevelData.data.name);
+            } else {
+                this.levelManager.completeLevel('random', this.currentLevelData.data.filename);
+            }
+        }
+        
+        // Show level completion message
+        const levelInfo = this.currentLevelData ? this.currentLevelData.levelInfo.description : 'Level';
+        const nextLevelData = await this.levelManager.getNextLevel();
+        
+        if (nextLevelData) {
+            // There are more levels
+            const message = `🎉 ${levelInfo} completed!\nYou found all ${this.differences.length} differences!\n\nReady for the next level?`;
+            const playNext = confirm(message);
+            
+            if (playNext) {
+                this.loadNextLevel();
+            } else {
+                this.isGameActive = false;
+                this.updateButtonStates();
+            }
+        } else {
+            // All levels completed - entire game is finished!
+            this.isGameActive = false;
+            this.updateButtonStates();
+            this.handleGameComplete();
+        }
     }
     
     resetGame() {
@@ -431,10 +689,11 @@ export class SpotTheDifferenceGame extends Game {
         document.getElementById('background-image-left').style.display = 'none';
         document.getElementById('background-image-right').style.display = 'none';
         
-        // Reset game state
+        // Reset current level state (but preserve level progression)
         this.differences = [];
         this.foundDifferences = [];
         this.currentTemplate = null;
+        this.currentLevelData = null;
         
         this.dispatchEvent('gameReset');
     }

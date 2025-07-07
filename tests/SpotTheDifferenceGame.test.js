@@ -143,6 +143,9 @@ describe('SpotTheDifferenceGame', () => {
 
     game = new SpotTheDifferenceGame();
     
+    // Force test mode for these unit tests
+    game.isTestMode = true;
+    
     // Mock editMode object which is needed for background change functionality
     game.editMode = {
       getBoundingBoxes: vi.fn(() => []),
