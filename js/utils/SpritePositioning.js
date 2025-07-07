@@ -229,9 +229,11 @@ export class SpritePositioning {
      * @param {number} spriteHeight - Height of the sprite
      * @param {number} buffer - Buffer space around sprites
      * @param {number} maxObscurationPercent - Maximum allowed obscuration percentage (default 70%)
+     * @param {Object} backgroundArea - Background area info {x, y, width, height}
+     * @param {number} maxAreaCoveragePercent - Maximum area coverage percentage (default 60%)
      * @returns {Object} Collision detection functions
      */
-    static createCollisionDetector(existingPositions = [], spriteWidth = 80, spriteHeight = 80, buffer = 5, maxObscurationPercent = 70) {
+    static createCollisionDetector(existingPositions = [], spriteWidth = 80, spriteHeight = 80, buffer = 5, maxObscurationPercent = 70, backgroundArea = null, maxAreaCoveragePercent = 60) {
         return {
             /**
              * Calculate the intersection area between two rectangles
@@ -250,6 +252,55 @@ export class SpritePositioning {
                 }
                 
                 return (right - left) * (bottom - top);
+            },
+            
+            /**
+             * Calculate total area coverage of all sprites
+             * @returns {Object} { totalArea, backgroundArea, coveragePercent, maxAllowed }
+             */
+            calculateAreaCoverage() {
+                if (!backgroundArea) {
+                    return { totalArea: 0, backgroundArea: 0, coveragePercent: 0, maxAllowed: maxAreaCoveragePercent };
+                }
+                
+                const totalSpriteArea = existingPositions.reduce((total, pos) => {
+                    return total + (pos.width * pos.height);
+                }, 0);
+                
+                const bgArea = backgroundArea.width * backgroundArea.height;
+                const coveragePercent = bgArea > 0 ? (totalSpriteArea / bgArea) * 100 : 0;
+                
+                return {
+                    totalArea: totalSpriteArea,
+                    backgroundArea: bgArea,
+                    coveragePercent: coveragePercent,
+                    maxAllowed: maxAreaCoveragePercent
+                };
+            },
+            
+            /**
+             * Check if adding a new sprite would exceed area coverage limits
+             * @param {number} newSpriteWidth - Width of new sprite (defaults to spriteWidth)
+             * @param {number} newSpriteHeight - Height of new sprite (defaults to spriteHeight)
+             * @returns {Object} { wouldExceed, currentCoverage, newCoverage, maxAllowed }
+             */
+            checkAreaCoverageLimit(newSpriteWidth = spriteWidth, newSpriteHeight = spriteHeight) {
+                if (!backgroundArea) {
+                    return { wouldExceed: false, currentCoverage: 0, newCoverage: 0, maxAllowed: maxAreaCoveragePercent };
+                }
+                
+                const current = this.calculateAreaCoverage();
+                const newSpriteArea = newSpriteWidth * newSpriteHeight;
+                const newTotalArea = current.totalArea + newSpriteArea;
+                const newCoveragePercent = current.backgroundArea > 0 ? (newTotalArea / current.backgroundArea) * 100 : 0;
+                
+                return {
+                    wouldExceed: newCoveragePercent > maxAreaCoveragePercent,
+                    currentCoverage: current.coveragePercent,
+                    newCoverage: newCoveragePercent,
+                    maxAllowed: maxAreaCoveragePercent,
+                    newSpriteArea: newSpriteArea
+                };
             },
             
             /**

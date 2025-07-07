@@ -108,13 +108,23 @@ export class SpriteManager {
         const spriteWidth = parseInt(sprite.style.width) || SPRITE_CONFIG.TARGET_SIZE_PX;
         const spriteHeight = parseInt(sprite.style.height) || SPRITE_CONFIG.TARGET_SIZE_PX;
         
-        // Create collision detector with current sprite positions and 70% max obscuration
+        // Get background area for coverage calculations
+        const backgroundArea = {
+            x: relativeLeft,
+            y: relativeTop,
+            width: bgRect.width,
+            height: bgRect.height
+        };
+        
+        // Create collision detector with current sprite positions, 70% max obscuration, and 60% area coverage limit
         const collisionDetector = SpritePositioning.createCollisionDetector(
             this.spritePositions, 
             spriteWidth, 
             spriteHeight,
             5, // buffer
-            70 // max obscuration percentage
+            70, // max obscuration percentage
+            backgroundArea, // background area for coverage calculations
+            60 // max area coverage percentage
         );
         
         // Get background context
@@ -296,6 +306,41 @@ export class SpriteManager {
         // Add a small delay to ensure background image is properly rendered
         await new Promise(resolve => setTimeout(resolve, 100));
         
+        // Get background area for coverage calculations
+        const context = SpritePositioning.getActiveBackgroundContext();
+        if (!context.backgroundImg || !context.container) {
+            console.warn('Cannot calculate area coverage - missing background context');
+            return 0;
+        }
+        
+        const bgRect = context.backgroundImg.getBoundingClientRect();
+        const containerRect = context.container.getBoundingClientRect();
+        const relativeLeft = bgRect.left - containerRect.left;
+        const relativeTop = bgRect.top - containerRect.top;
+        
+        const backgroundArea = {
+            x: relativeLeft,
+            y: relativeTop,
+            width: bgRect.width,
+            height: bgRect.height
+        };
+        
+        // Create collision detector for area coverage tracking
+        const collisionDetector = SpritePositioning.createCollisionDetector(
+            [], // start with empty positions
+            SPRITE_CONFIG.TARGET_SIZE_PX,
+            SPRITE_CONFIG.TARGET_SIZE_PX,
+            5, // buffer
+            70, // max obscuration percentage
+            backgroundArea, // background area for coverage calculations
+            60 // max area coverage percentage
+        );
+        
+        console.log(`Starting sprite placement with ${randomSprites.length} sprites, target count: ${spriteCount}`);
+        console.log(`Background area: ${backgroundArea.width}x${backgroundArea.height} = ${backgroundArea.width * backgroundArea.height}px`);
+        
+        let placedSprites = 0;
+        
         if (boundingBoxes.length > 0) {
             // Calculate capacity-based distribution
             const distribution = this.calculateSpriteDistribution(boundingBoxes, randomSprites.length);
@@ -304,6 +349,14 @@ export class SpriteManager {
             for (const [boxIndex, count] of distribution.entries()) {
                 for (let i = 0; i < count; i++) {
                     if (spriteIndex >= randomSprites.length) break;
+                    
+                    // Check area coverage before placing sprite
+                    const areaCoverage = collisionDetector.checkAreaCoverageLimit();
+                    if (areaCoverage.wouldExceed) {
+                        console.log(`🛑 Stopping sprite placement: area coverage limit reached`);
+                        console.log(`Current coverage: ${areaCoverage.currentCoverage.toFixed(1)}%, would be: ${areaCoverage.newCoverage.toFixed(1)}%, max: ${areaCoverage.maxAllowed}%`);
+                        break;
+                    }
                     
                     const currentSpriteSrc = randomSprites[spriteIndex];
                     
@@ -316,6 +369,15 @@ export class SpriteManager {
                         if (spriteElement) {
                             this.container.appendChild(spriteElement);
                             this.activeSprites.push(spriteElement);
+                            placedSprites++;
+                            
+                            // Add sprite to collision detector for area tracking
+                            const spriteWidth = parseInt(spriteElement.style.width) || SPRITE_CONFIG.TARGET_SIZE_PX;
+                            const spriteHeight = parseInt(spriteElement.style.height) || SPRITE_CONFIG.TARGET_SIZE_PX;
+                            const spriteX = parseInt(spriteElement.style.left) || 0;
+                            const spriteY = parseInt(spriteElement.style.top) || 0;
+                            
+                            collisionDetector.addPosition(spriteX, spriteY, spriteWidth, spriteHeight);
                         } else {
                             console.warn(`Failed to create sprite element for ${currentSpriteSrc}`);
                         }
@@ -330,15 +392,38 @@ export class SpriteManager {
                         await new Promise(resolve => setTimeout(resolve, 10));
                     }
                 }
+                
+                // Check if we need to stop due to area coverage
+                const areaCoverage = collisionDetector.checkAreaCoverageLimit();
+                if (areaCoverage.wouldExceed) {
+                    break;
+                }
             }
         } else {
             // No bounding boxes, use full background with random selection
             for (const spriteSrc of randomSprites) {
+                // Check area coverage before placing sprite
+                const areaCoverage = collisionDetector.checkAreaCoverageLimit();
+                if (areaCoverage.wouldExceed) {
+                    console.log(`🛑 Stopping sprite placement: area coverage limit reached`);
+                    console.log(`Current coverage: ${areaCoverage.currentCoverage.toFixed(1)}%, would be: ${areaCoverage.newCoverage.toFixed(1)}%, max: ${areaCoverage.maxAllowed}%`);
+                    break;
+                }
+                
                 try {
                     const spriteElement = await this.createSpriteElement(spriteSrc, boundingBoxes);
                     if (spriteElement) {
                         this.container.appendChild(spriteElement);
                         this.activeSprites.push(spriteElement);
+                        placedSprites++;
+                        
+                        // Add sprite to collision detector for area tracking
+                        const spriteWidth = parseInt(spriteElement.style.width) || SPRITE_CONFIG.TARGET_SIZE_PX;
+                        const spriteHeight = parseInt(spriteElement.style.height) || SPRITE_CONFIG.TARGET_SIZE_PX;
+                        const spriteX = parseInt(spriteElement.style.left) || 0;
+                        const spriteY = parseInt(spriteElement.style.top) || 0;
+                        
+                        collisionDetector.addPosition(spriteX, spriteY, spriteWidth, spriteHeight);
                     } else {
                         console.warn(`Failed to create sprite element for ${spriteSrc}`);
                     }
@@ -350,6 +435,12 @@ export class SpriteManager {
                 await new Promise(resolve => setTimeout(resolve, 10));
             }
         }
+        
+        // Log final area coverage statistics
+        const finalCoverage = collisionDetector.calculateAreaCoverage();
+        console.log(`✅ Sprite placement completed: ${placedSprites} sprites placed`);
+        console.log(`📊 Final area coverage: ${finalCoverage.coveragePercent.toFixed(1)}% (${finalCoverage.totalArea}px / ${finalCoverage.backgroundArea}px)`);
+        console.log(`🎯 Coverage limit: ${finalCoverage.maxAllowed}%`);
         
         return this.activeSprites.length;
     }
