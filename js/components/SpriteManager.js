@@ -139,30 +139,53 @@ export class SpriteManager {
                 boundingBoxes[Math.floor(Math.random() * boundingBoxes.length)];
             
             // Find non-colliding position within bounding box using centralized system
+            // Ensure sprite centers stay within background bounds
             position = collisionDetector.findNonCollidingPosition(
                 relativeLeft + selectedBox.x,
                 relativeTop + selectedBox.y,
                 selectedBox.width,
-                selectedBox.height
+                selectedBox.height,
+                50, // maxAttempts
+                true // ensureCenterInBounds
             );
             
-            console.log(`Positioned sprite in box ${specificBoxIndex || 'random'} at: ${position.x}, ${position.y} (attempts: ${position.attempts})`);
+            console.log(`Positioned sprite in box ${specificBoxIndex || 'random'} at: ${position.x}, ${position.y} (attempts: ${position.attempts}, centerInBounds: ${position.centerInBounds})`);
         } else {
             // Find non-colliding position on full background using centralized system
+            // Ensure sprite centers stay within background bounds
             position = collisionDetector.findNonCollidingPosition(
                 relativeLeft,
                 relativeTop,
                 bgRect.width,
-                bgRect.height
+                bgRect.height,
+                50, // maxAttempts
+                true // ensureCenterInBounds
             );
             
-            console.log(`Positioned sprite on full background at: ${position.x}, ${position.y} (attempts: ${position.attempts})`);
+            console.log(`Positioned sprite on full background at: ${position.x}, ${position.y} (attempts: ${position.attempts}, centerInBounds: ${position.centerInBounds})`);
         }
         
         // Apply position using centralized system
         sprite.style.position = 'absolute';
         sprite.style.left = position.x + 'px';
         sprite.style.top = position.y + 'px';
+        
+        // Warn if sprite center ended up outside bounds
+        if (position.centerInBounds === false) {
+            console.warn('⚠️ Sprite center placed outside background bounds due to crowding:', {
+                spritePos: { x: position.x, y: position.y },
+                spriteCenter: { 
+                    x: position.x + spriteWidth / 2, 
+                    y: position.y + spriteHeight / 2 
+                },
+                backgroundBounds: { 
+                    x: relativeLeft, 
+                    y: relativeTop, 
+                    width: bgRect.width, 
+                    height: bgRect.height 
+                }
+            });
+        }
         
         // Store position for collision detection
         collisionDetector.addPosition(position.x, position.y, spriteWidth, spriteHeight);

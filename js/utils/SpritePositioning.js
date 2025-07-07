@@ -333,36 +333,90 @@ export class SpritePositioning {
             },
             
             /**
-             * Find a non-colliding position within an area
+             * Check if a sprite position keeps its center within the specified bounds
+             * @param {number} x - Sprite X coordinate (top-left)
+             * @param {number} y - Sprite Y coordinate (top-left)
+             * @param {number} boundsX - Bounds X coordinate
+             * @param {number} boundsY - Bounds Y coordinate
+             * @param {number} boundsWidth - Bounds width
+             * @param {number} boundsHeight - Bounds height
+             * @returns {boolean} True if sprite center is within bounds
+             */
+            isSpriteCenterWithinBounds(x, y, boundsX, boundsY, boundsWidth, boundsHeight) {
+                const spriteCenterX = x + spriteWidth / 2;
+                const spriteCenterY = y + spriteHeight / 2;
+                
+                return spriteCenterX >= boundsX && 
+                       spriteCenterX <= boundsX + boundsWidth &&
+                       spriteCenterY >= boundsY && 
+                       spriteCenterY <= boundsY + boundsHeight;
+            },
+            
+            /**
+             * Find a non-colliding position within an area with center bounds checking
              * @param {number} areaX - Area X coordinate
              * @param {number} areaY - Area Y coordinate
              * @param {number} areaWidth - Area width
              * @param {number} areaHeight - Area height
              * @param {number} maxAttempts - Maximum attempts to find position
-             * @returns {Object} { x, y, attempts, violations }
+             * @param {boolean} ensureCenterInBounds - Whether to ensure sprite center stays within area bounds
+             * @returns {Object} { x, y, attempts, violations, centerInBounds }
              */
-            findNonCollidingPosition(areaX, areaY, areaWidth, areaHeight, maxAttempts = 50) {
-                const availableWidth = Math.max(1, areaWidth - spriteWidth);
-                const availableHeight = Math.max(1, areaHeight - spriteHeight);
+            findNonCollidingPosition(areaX, areaY, areaWidth, areaHeight, maxAttempts = 50, ensureCenterInBounds = true) {
+                // Calculate positioning constraints based on center bounds requirement
+                let availableWidth, availableHeight, minX, minY;
+                
+                if (ensureCenterInBounds) {
+                    // Ensure sprite center stays within bounds
+                    // Center must be at least spriteWidth/2 from left edge and spriteWidth/2 from right edge
+                    const halfWidth = spriteWidth / 2;
+                    const halfHeight = spriteHeight / 2;
+                    
+                    minX = areaX + halfWidth;
+                    minY = areaY + halfHeight;
+                    availableWidth = Math.max(1, areaWidth - spriteWidth);
+                    availableHeight = Math.max(1, areaHeight - spriteHeight);
+                } else {
+                    // Just ensure sprite doesn't extend outside bounds (original behavior)
+                    minX = areaX;
+                    minY = areaY;
+                    availableWidth = Math.max(1, areaWidth - spriteWidth);
+                    availableHeight = Math.max(1, areaHeight - spriteHeight);
+                }
+                
                 let lastViolations = [];
+                let centerInBounds = true;
                 
                 for (let attempt = 0; attempt < maxAttempts; attempt++) {
-                    const x = areaX + Math.floor(Math.random() * availableWidth);
-                    const y = areaY + Math.floor(Math.random() * availableHeight);
+                    const x = minX + Math.floor(Math.random() * availableWidth);
+                    const y = minY + Math.floor(Math.random() * availableHeight);
+                    
+                    // Check if center is within bounds (if required)
+                    if (ensureCenterInBounds) {
+                        centerInBounds = this.isSpriteCenterWithinBounds(x, y, areaX, areaY, areaWidth, areaHeight);
+                        if (!centerInBounds) {
+                            continue; // Try again
+                        }
+                    }
                     
                     const obscurationCheck = this.checkObscurationViolation(x, y);
                     if (!obscurationCheck.hasViolation) {
-                        return { x, y, attempts: attempt + 1, violations: [] };
+                        return { x, y, attempts: attempt + 1, violations: [], centerInBounds };
                     }
                     
                     lastViolations = obscurationCheck.violations;
                 }
                 
                 // If no non-colliding position found, use last attempt
-                const x = areaX + Math.floor(Math.random() * availableWidth);
-                const y = areaY + Math.floor(Math.random() * availableHeight);
+                const x = minX + Math.floor(Math.random() * availableWidth);
+                const y = minY + Math.floor(Math.random() * availableHeight);
+                
+                if (ensureCenterInBounds) {
+                    centerInBounds = this.isSpriteCenterWithinBounds(x, y, areaX, areaY, areaWidth, areaHeight);
+                }
+                
                 console.warn(`Could not find non-obscured position after ${maxAttempts} attempts. Last violations:`, lastViolations);
-                return { x, y, attempts: maxAttempts, violations: lastViolations };
+                return { x, y, attempts: maxAttempts, violations: lastViolations, centerInBounds };
             },
             
             /**
