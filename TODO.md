@@ -1,5 +1,7 @@
-* When completing a level, instead of using an alert box, use some non-alert modal.
-* When moving to the next level, ensure all sprites from the previous level are removed.
-* When placing sprites randomly, the sprite must not cause another sprite to be obscured by more than 70% of its area. This means that two sprites covering a third sprite may not cover more than 70% of that sprite.
-* When placing sprites randomly, the center of the sprite may not be outside the bounds of the background.
-* When placing sprites randomly, stop placing them if they take up more than 60% of the area of the background image.
+* ✅ When starting a level, reset the difference count.
+* ✅ Keep a running total of all differences found throughout the current game.
+* ✅ After a level, show the total number of differences found in addition to the other stats.
+* ✅ The user shouldn't know the difference between a level based on a template, and a random level. Just combine all of them all into a total number of levels to show the user.
+* ✅ In the level completion modal, don't allow the user to dismiss except by clicking Ok.
+* ✅ Display the level number in the title of the page, as well as the level title. The level title should be based on the background image filename.
+* ✅ If the user presses "$", treat that as if they found all the differences. This will be useful for debugging.
