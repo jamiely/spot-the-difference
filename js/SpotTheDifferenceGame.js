@@ -330,7 +330,8 @@ export class SpotTheDifferenceGame extends Game {
                        `📊 Final Statistics:\n` +
                        `• Templates completed: ${stats.templatesCompleted}/${stats.totalTemplates}\n` +
                        `• Random levels completed: ${stats.randomBackgroundsCompleted}/${stats.totalRandomBackgrounds}\n` +
-                       `• Total levels completed: ${stats.totalCompleted}/${stats.totalLevels}\n\n` +
+                       `• Total levels completed: ${stats.totalCompleted}/${stats.totalLevels}\n` +
+                       `• Total differences found: ${this.totalDifferencesFound}\n\n` +
                        `Would you like to play again?`;
         
         const playAgain = await this.modal.showConfirm('Game Complete!', message);
@@ -679,7 +680,7 @@ export class SpotTheDifferenceGame extends Game {
             console.log('Running in test mode - skipping level progression');
             this.isGameActive = false;
             this.updateButtonStates();
-            await this.modal.showAlert('Level Complete', `Congratulations! You found all ${this.differences.length} differences!`);
+            await this.modal.showAlert('Level Complete', `Congratulations! You found all ${this.differences.length} differences!\n\nTotal differences found: ${this.totalDifferencesFound}`);
             return;
         }
         
@@ -716,7 +717,7 @@ export class SpotTheDifferenceGame extends Game {
         if (nextLevelData) {
             // There are more levels
             const levelInfo = this.currentLevelData ? this.currentLevelData.levelInfo.description : 'Level';
-            const message = `🎉 ${levelInfo} completed!\nYou found all ${this.differences.length} differences!\n\nReady for the next level?`;
+            const message = `🎉 ${levelInfo} completed!\nYou found all ${this.differences.length} differences!\n\nTotal differences found: ${this.totalDifferencesFound}\n\nReady for the next level?`;
             console.log('Showing level completion modal...');
             const playNext = await this.modal.showConfirm('Level Complete!', message);
             console.log(`User chose to continue: ${playNext}`);
