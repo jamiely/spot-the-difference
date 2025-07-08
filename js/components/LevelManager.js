@@ -226,20 +226,37 @@ export class LevelManager {
         const totalRandomBackgrounds = randomBackgrounds.length;
         const completedRandomCount = this.completedBackgrounds.length;
         
+        // Calculate unified level numbering across both phases
+        const totalLevels = totalTemplates + totalRandomBackgrounds;
+        const totalCompletedLevels = completedTemplatesCount + completedRandomCount;
+        const currentUnifiedLevel = totalCompletedLevels + 1;
+        
         if (this.currentPhase === 'templates') {
             return {
                 phase: 'templates',
-                current: completedTemplatesCount + 1,
-                total: totalTemplates,
-                description: `Template ${completedTemplatesCount + 1} of ${totalTemplates}`
+                current: currentUnifiedLevel,
+                total: totalLevels,
+                description: `Level ${currentUnifiedLevel} of ${totalLevels}`,
+                // Keep internal tracking for backward compatibility
+                _phaseSpecific: {
+                    current: completedTemplatesCount + 1,
+                    total: totalTemplates,
+                    description: `Template ${completedTemplatesCount + 1} of ${totalTemplates}`
+                }
             };
         } else {
             return {
                 phase: 'random',
-                current: completedRandomCount + 1,
-                total: totalRandomBackgrounds,
-                description: `Random Level ${completedRandomCount + 1} of ${totalRandomBackgrounds}`,
-                templatePhaseComplete: true
+                current: currentUnifiedLevel,
+                total: totalLevels,
+                description: `Level ${currentUnifiedLevel} of ${totalLevels}`,
+                templatePhaseComplete: true,
+                // Keep internal tracking for backward compatibility
+                _phaseSpecific: {
+                    current: completedRandomCount + 1,
+                    total: totalRandomBackgrounds,
+                    description: `Random Level ${completedRandomCount + 1} of ${totalRandomBackgrounds}`
+                }
             };
         }
     }

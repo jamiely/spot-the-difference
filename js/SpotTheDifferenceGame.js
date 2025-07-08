@@ -328,9 +328,7 @@ export class SpotTheDifferenceGame extends Game {
         const stats = this.levelManager.getCompletionStats();
         const message = `🎉 Congratulations! You've completed the entire game!\n\n` +
                        `📊 Final Statistics:\n` +
-                       `• Templates completed: ${stats.templatesCompleted}/${stats.totalTemplates}\n` +
-                       `• Random levels completed: ${stats.randomBackgroundsCompleted}/${stats.totalRandomBackgrounds}\n` +
-                       `• Total levels completed: ${stats.totalCompleted}/${stats.totalLevels}\n` +
+                       `• Levels completed: ${stats.totalCompleted}/${stats.totalLevels}\n` +
                        `• Total differences found: ${this.totalDifferencesFound}\n\n` +
                        `Would you like to play again?`;
         

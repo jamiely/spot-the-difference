@@ -142,11 +142,13 @@ describe('Level Completion Stats Display', () => {
             const calledMessage = mockModal.showConfirm.mock.calls[0][1];
             expect(calledMessage).toMatch(/🎉 Congratulations! You've completed the entire game!/);
             expect(calledMessage).toMatch(/📊 Final Statistics:/);
-            expect(calledMessage).toMatch(/• Templates completed: 3\/5/);
-            expect(calledMessage).toMatch(/• Random levels completed: 2\/5/);
-            expect(calledMessage).toMatch(/• Total levels completed: 5\/10/);
+            expect(calledMessage).toMatch(/• Levels completed: 5\/10/);
             expect(calledMessage).toMatch(/• Total differences found: 25/);
             expect(calledMessage).toMatch(/Would you like to play again\?/);
+            
+            // Verify that template/random level distinction is NOT shown
+            expect(calledMessage).not.toMatch(/Templates completed/);
+            expect(calledMessage).not.toMatch(/Random levels completed/);
         });
 
         it('should display running total in test mode game completion', async () => {
