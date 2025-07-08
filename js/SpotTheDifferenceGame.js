@@ -310,8 +310,34 @@ export class SpotTheDifferenceGame extends Game {
         const levelInfo = this.currentLevelData.levelInfo;
         console.log(`Level ${levelInfo.current}/${levelInfo.total} - ${levelInfo.description}`);
         
-        // You could add a UI element to display this to the user
-        // For now, we'll just log it
+        // Update page title with level number and background name
+        this.updatePageTitle();
+    }
+    
+    updatePageTitle() {
+        if (!this.currentLevelData) return;
+        
+        const levelInfo = this.currentLevelData.levelInfo;
+        let backgroundName = 'Unknown';
+        
+        // Extract background filename based on level type
+        if (this.currentLevelData.type === 'template' && this.currentTemplate) {
+            backgroundName = this.currentTemplate.background;
+        } else if (this.currentLevelData.type === 'random') {
+            // Handle both string and object formats for random background data
+            const data = this.currentLevelData.data;
+            backgroundName = typeof data === 'string' ? data : data.filename;
+        }
+        
+        // Remove file extension and clean up the name for display
+        const cleanName = backgroundName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+        const capitalizedName = cleanName.replace(/\b\w/g, l => l.toUpperCase());
+        
+        // Format: "Level X of Y - Background Name - Spot the Difference"
+        const title = `${levelInfo.description} - ${capitalizedName} - Spot the Difference`;
+        
+        document.title = title;
+        console.log(`Page title updated: ${title}`);
     }
     
     async handleGameComplete() {
@@ -755,6 +781,10 @@ export class SpotTheDifferenceGame extends Game {
         this.foundDifferences = [];
         this.currentTemplate = null;
         this.currentLevelData = null;
+        
+        // Reset page title to default
+        document.title = 'Spot the Difference';
+        console.log('Page title reset to default');
         
         this.dispatchEvent('gameReset');
     }
