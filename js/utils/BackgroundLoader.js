@@ -10,18 +10,22 @@ export class BackgroundLoader {
     async loadAvailableBackgrounds() {
         try {
             const knownBackgrounds = await this.configLoader.getBackgrounds();
-            const backgrounds = [];
+            const backgroundFilenames = [];
+            const backgroundObjects = [];
             
             for (const backgroundData of knownBackgrounds) {
                 // Handle both old format (string) and new format (object)
                 const filename = typeof backgroundData === 'string' ? backgroundData : backgroundData.filename;
                 if (await this.imageExists(this.backgroundsPath + filename)) {
-                    backgrounds.push(filename);
+                    backgroundFilenames.push(filename);
+                    backgroundObjects.push({ filename: filename });
                 }
             }
             
-            this.loadedBackgrounds = backgrounds;
-            return backgrounds;
+            // Keep loadedBackgrounds as strings for compatibility with getRandomBackground()
+            this.loadedBackgrounds = backgroundFilenames;
+            // Return objects for LevelManager compatibility
+            return backgroundObjects;
         } catch (error) {
             console.warn('Could not load backgrounds:', error);
             return [];

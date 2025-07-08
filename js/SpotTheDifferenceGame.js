@@ -675,12 +675,19 @@ export class SpotTheDifferenceGame extends Game {
         
         // Mark current level as completed in level manager
         if (this.currentLevelData) {
-            console.log(`Marking level as completed: ${this.currentLevelData.type} - ${this.currentLevelData.data.name || this.currentLevelData.data.filename}`);
+            // Handle both object and string formats for level data
+            let levelIdentifier;
             if (this.currentLevelData.type === 'template') {
-                this.levelManager.completeLevel('template', this.currentLevelData.data.name);
+                levelIdentifier = this.currentLevelData.data.name;
             } else {
-                this.levelManager.completeLevel('random', this.currentLevelData.data.filename);
+                // For random levels, data can be either a string (filename) or object with filename property
+                levelIdentifier = typeof this.currentLevelData.data === 'string' 
+                    ? this.currentLevelData.data 
+                    : this.currentLevelData.data.filename;
             }
+            
+            console.log(`Marking level as completed: ${this.currentLevelData.type} - ${levelIdentifier}`);
+            this.levelManager.completeLevel(this.currentLevelData.type, levelIdentifier);
         } else {
             console.warn('No current level data available to mark as completed');
         }
