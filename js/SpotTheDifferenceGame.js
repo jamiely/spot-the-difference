@@ -678,7 +678,7 @@ export class SpotTheDifferenceGame extends Game {
             console.log('Running in test mode - skipping level progression');
             this.isGameActive = false;
             this.updateButtonStates();
-            await this.modal.showAlert('Level Complete', `Congratulations! You found all ${this.differences.length} differences!\n\nTotal differences found: ${this.totalDifferencesFound}`);
+            await this.modal.showAlert('Level Complete', `Congratulations! You found all ${this.differences.length} differences!\n\nTotal differences found: ${this.totalDifferencesFound}`, true);
             return;
         }
         
@@ -717,7 +717,7 @@ export class SpotTheDifferenceGame extends Game {
             const levelInfo = this.currentLevelData ? this.currentLevelData.levelInfo.description : 'Level';
             const message = `🎉 ${levelInfo} completed!\nYou found all ${this.differences.length} differences!\n\nTotal differences found: ${this.totalDifferencesFound}\n\nReady for the next level?`;
             console.log('Showing level completion modal...');
-            const playNext = await this.modal.showConfirm('Level Complete!', message);
+            const playNext = await this.modal.showConfirm('Level Complete!', message, true);
             console.log(`User chose to continue: ${playNext}`);
             
             if (playNext) {

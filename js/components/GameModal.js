@@ -29,8 +29,8 @@ export class GameModal {
 
         // Add event listeners
         this.modalElement.addEventListener('click', (e) => {
-            if (e.target === this.modalElement) {
-                this.close(false); // Click on overlay closes modal with false
+            if (e.target === this.modalElement && !this.isRestrictive) {
+                this.close(false); // Click on overlay closes modal with false (only if not restrictive)
             }
         });
 
@@ -50,9 +50,10 @@ export class GameModal {
      * Show alert-style modal (only OK button)
      * @param {string} title - Modal title
      * @param {string} message - Modal message
+     * @param {boolean} restrictive - If true, only allow dismissal via OK button
      * @returns {Promise<boolean>} Always resolves to true for alerts
      */
-    async showAlert(title, message) {
+    async showAlert(title, message, restrictive = false) {
         this.modalElement.querySelector('.game-modal-title').textContent = title;
         this.modalElement.querySelector('.game-modal-message').textContent = message;
         
@@ -60,33 +61,40 @@ export class GameModal {
         this.modalElement.querySelector('[data-action="cancel"]').style.display = 'none';
         this.modalElement.querySelector('[data-action="confirm"]').textContent = 'OK';
         
-        return this.show();
+        return this.show(restrictive);
     }
 
     /**
      * Show confirm-style modal (OK and Cancel buttons)
      * @param {string} title - Modal title
      * @param {string} message - Modal message
+     * @param {boolean} restrictive - If true, only allow dismissal via OK button
      * @returns {Promise<boolean>} Resolves to true if confirmed, false if cancelled
      */
-    async showConfirm(title, message) {
+    async showConfirm(title, message, restrictive = false) {
         this.modalElement.querySelector('.game-modal-title').textContent = title;
         this.modalElement.querySelector('.game-modal-message').textContent = message;
         
-        // Show both buttons for confirms
-        this.modalElement.querySelector('[data-action="cancel"]').style.display = 'inline-block';
+        // Show/hide cancel button based on restrictive mode
+        if (restrictive) {
+            this.modalElement.querySelector('[data-action="cancel"]').style.display = 'none';
+        } else {
+            this.modalElement.querySelector('[data-action="cancel"]').style.display = 'inline-block';
+        }
         this.modalElement.querySelector('[data-action="confirm"]').textContent = 'OK';
         
-        return this.show();
+        return this.show(restrictive);
     }
 
     /**
      * Show the modal and return a promise that resolves with user choice
+     * @param {boolean} restrictive - If true, only allow dismissal via OK button
      * @returns {Promise<boolean>}
      */
-    show() {
+    show(restrictive = false) {
         return new Promise((resolve) => {
             this.resolveFunction = resolve;
+            this.isRestrictive = restrictive;
             this.modalElement.style.display = 'flex';
             
             // Focus the primary button
@@ -94,9 +102,9 @@ export class GameModal {
                 this.modalElement.querySelector('[data-action="confirm"]').focus();
             }, 100);
 
-            // Handle ESC key
+            // Handle ESC key (only if not restrictive)
             this.escapeHandler = (e) => {
-                if (e.key === 'Escape') {
+                if (e.key === 'Escape' && !this.isRestrictive) {
                     this.close(false);
                 }
             };

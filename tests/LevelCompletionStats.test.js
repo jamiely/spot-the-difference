@@ -74,10 +74,11 @@ describe('Level Completion Stats Display', () => {
             // Call endGame
             await game.endGame();
             
-            // Verify the modal was called with running total
+            // Verify the modal was called with running total and restrictive mode
             expect(mockModal.showConfirm).toHaveBeenCalledWith(
                 'Level Complete!',
-                expect.stringContaining('Total differences found: 7')
+                expect.stringContaining('Total differences found: 7'),
+                true
             );
             
             // Verify the complete message structure
@@ -100,10 +101,11 @@ describe('Level Completion Stats Display', () => {
             // Call endGame
             await game.endGame();
             
-            // Verify the alert was called with running total
+            // Verify the alert was called with running total and restrictive mode
             expect(mockModal.showAlert).toHaveBeenCalledWith(
                 'Level Complete',
-                expect.stringContaining('Total differences found: 10')
+                expect.stringContaining('Total differences found: 10'),
+                true
             );
             
             // Verify the complete message structure
@@ -190,7 +192,8 @@ describe('Level Completion Stats Display', () => {
             // Verify first level shows total of 2
             expect(mockModal.showConfirm).toHaveBeenCalledWith(
                 'Level Complete!',
-                expect.stringContaining('Total differences found: 2')
+                expect.stringContaining('Total differences found: 2'),
+                true
             );
             
             // Reset mock for next call
@@ -211,7 +214,8 @@ describe('Level Completion Stats Display', () => {
             // Verify second level shows total of 5
             expect(mockModal.showConfirm).toHaveBeenCalledWith(
                 'Level Complete!',
-                expect.stringContaining('Total differences found: 5')
+                expect.stringContaining('Total differences found: 5'),
+                true
             );
         });
     });
