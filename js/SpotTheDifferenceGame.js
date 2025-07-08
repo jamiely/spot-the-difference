@@ -341,7 +341,18 @@ export class SpotTheDifferenceGame extends Game {
         // Format: "Level X of Y - Background Name - Spot the Difference"
         const title = `${levelInfo.description} - ${capitalizedName} - Spot the Difference`;
         
+        // Update document title
         document.title = title;
+        
+        // Update visible header on the page
+        const levelTitleElement = document.getElementById('level-title');
+        if (levelTitleElement) {
+            const headerText = `${levelInfo.description} - ${capitalizedName}`;
+            levelTitleElement.textContent = headerText;
+            levelTitleElement.style.display = 'block';
+            console.log(`Level header updated: ${headerText}`);
+        }
+        
         console.log(`Page title updated: ${title}`);
     }
     
@@ -800,7 +811,15 @@ export class SpotTheDifferenceGame extends Game {
         
         // Reset page title to default
         document.title = 'Spot the Difference';
-        console.log('Page title reset to default');
+        
+        // Hide level title header
+        const levelTitleElement = document.getElementById('level-title');
+        if (levelTitleElement) {
+            levelTitleElement.style.display = 'none';
+            levelTitleElement.textContent = '';
+        }
+        
+        console.log('Page title and header reset to default');
         
         this.dispatchEvent('gameReset');
     }

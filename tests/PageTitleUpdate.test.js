@@ -21,6 +21,7 @@ describe('Page Title Update', () => {
             <span id="score-count">0</span>
             <img id="background-image-left" style="display: none;">
             <img id="background-image-right" style="display: none;">
+            <h2 id="level-title" style="display: none;"></h2>
         `;
 
         // Mock the managers
@@ -79,6 +80,11 @@ describe('Page Title Update', () => {
             game.updatePageTitle();
 
             expect(document.title).toBe('Level 1 of 10 - Forest Scene - Spot the Difference');
+            
+            // Check visible header
+            const levelTitle = document.getElementById('level-title');
+            expect(levelTitle.textContent).toBe('Level 1 of 10 - Forest Scene');
+            expect(levelTitle.style.display).toBe('block');
         });
 
         it('should update page title for random level with string data', () => {
@@ -97,6 +103,11 @@ describe('Page Title Update', () => {
             game.updatePageTitle();
 
             expect(document.title).toBe('Level 5 of 10 - Ocean View - Spot the Difference');
+            
+            // Check visible header
+            const levelTitle = document.getElementById('level-title');
+            expect(levelTitle.textContent).toBe('Level 5 of 10 - Ocean View');
+            expect(levelTitle.style.display).toBe('block');
         });
 
         it('should update page title for random level with object data', () => {
@@ -183,12 +194,17 @@ describe('Page Title Update', () => {
 
     describe('resetGame title behavior', () => {
         it('should reset page title to default when game is reset', () => {
-            // Set a custom title first
+            // Set a custom title and header first
             document.title = 'Level 5 of 10 - Forest Scene - Spot the Difference';
+            const levelTitle = document.getElementById('level-title');
+            levelTitle.textContent = 'Level 5 of 10 - Forest Scene';
+            levelTitle.style.display = 'block';
             
             game.resetGame();
 
             expect(document.title).toBe('Spot the Difference');
+            expect(levelTitle.textContent).toBe('');
+            expect(levelTitle.style.display).toBe('none');
         });
 
         it('should reset title even if game was in middle of level', () => {
@@ -206,9 +222,16 @@ describe('Page Title Update', () => {
             game.currentTemplate = { background: 'forest_scene.jpg' };
             document.title = 'Level 3 of 10 - Forest Scene - Spot the Difference';
             
+            // Setup visible header
+            const levelTitle = document.getElementById('level-title');
+            levelTitle.textContent = 'Level 3 of 10 - Forest Scene';
+            levelTitle.style.display = 'block';
+            
             game.resetGame();
 
             expect(document.title).toBe('Spot the Difference');
+            expect(levelTitle.textContent).toBe('');
+            expect(levelTitle.style.display).toBe('none');
             expect(game.currentLevelData).toBe(null);
             expect(game.currentTemplate).toBe(null);
         });
