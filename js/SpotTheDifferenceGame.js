@@ -90,6 +90,11 @@ export class SpotTheDifferenceGame extends Game {
             if (e.key === '!' && this.isGameActive) {
                 this.revealAllDifferences();
             }
+            
+            // Debug: Auto-complete level with '$' key
+            if (e.key === '$' && this.isGameActive) {
+                this.autoCompleteLevel();
+            }
         });
     }
     
@@ -690,6 +695,17 @@ export class SpotTheDifferenceGame extends Game {
                 // Create gray circle marker for unfound differences
                 this.createDifferenceMarker(difference.centerX, difference.centerY, 'left', '◌', '#6c757d');
                 this.createDifferenceMarker(difference.centerX, difference.centerY, 'right', '◌', '#6c757d');
+            }
+        });
+    }
+    
+    autoCompleteLevel() {
+        console.log('Debug: Auto-completing level with $ key');
+        
+        // Find all unfound differences and mark them as found
+        this.differences.forEach(difference => {
+            if (!this.foundDifferences.includes(difference.id)) {
+                this.markDifferenceFound(difference, 'left', difference.centerX, difference.centerY);
             }
         });
     }
