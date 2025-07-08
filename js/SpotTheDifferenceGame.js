@@ -106,40 +106,52 @@ export class SpotTheDifferenceGame extends Game {
     
     async loadNextLevel() {
         try {
+            console.log('=== LOADING NEXT LEVEL ===');
+            console.log(`Test mode: ${this.isTestMode}`);
+            
             // Always clear sprites and markers from previous level first
             this.clearAllPreviousLevelData();
             
             if (this.isTestMode) {
                 // In test mode, just load template1 like the old behavior
+                console.log('Test mode - loading template1');
                 await this.loadTemplateForSpotTheDifference();
                 return;
             }
             
             // Get the next level from the level manager
+            console.log('Getting next level from level manager...');
             this.currentLevelData = await this.levelManager.getNextLevel();
+            console.log('Received level data:', this.currentLevelData);
             
             if (!this.currentLevelData) {
                 // Game is complete!
+                console.log('No more levels - game complete!');
                 this.handleGameComplete();
                 return;
             }
             
             console.log(`Loading level: ${this.currentLevelData.levelInfo.description}`);
             console.log(`Level type: ${this.currentLevelData.type}`);
+            console.log(`Level data:`, this.currentLevelData.data);
             
             if (this.currentLevelData.type === 'template') {
                 // Load template-based level
+                console.log('Loading template-based level...');
                 await this.setupSideBySideGame(this.currentLevelData.data);
             } else {
                 // Load random background level
+                console.log('Loading random background level...');
                 await this.setupRandomBackgroundLevel(this.currentLevelData.data);
             }
             
             // Display level info to the user
             this.displayLevelInfo();
+            console.log('Level loading completed successfully');
             
         } catch (error) {
             console.error('Failed to load next level:', error);
+            console.error('Error stack:', error.stack);
             // If loading fails, deactivate the game
             this.isGameActive = false;
             this.updateButtonStates();
@@ -642,9 +654,12 @@ export class SpotTheDifferenceGame extends Game {
     
     async endGame() {
         console.log('Level completed! All differences found.');
+        console.log(`Current level data:`, this.currentLevelData);
+        console.log(`Test mode: ${this.isTestMode}`);
         
         if (this.isTestMode) {
             // In test mode, use the old simple behavior
+            console.log('Running in test mode - skipping level progression');
             this.isGameActive = false;
             this.updateButtonStates();
             await this.modal.showAlert('Level Complete', `Congratulations! You found all ${this.differences.length} differences!`);
@@ -653,30 +668,46 @@ export class SpotTheDifferenceGame extends Game {
         
         // Mark current level as completed in level manager
         if (this.currentLevelData) {
+            console.log(`Marking level as completed: ${this.currentLevelData.type} - ${this.currentLevelData.data.name || this.currentLevelData.data.filename}`);
             if (this.currentLevelData.type === 'template') {
                 this.levelManager.completeLevel('template', this.currentLevelData.data.name);
             } else {
                 this.levelManager.completeLevel('random', this.currentLevelData.data.filename);
             }
+        } else {
+            console.warn('No current level data available to mark as completed');
         }
         
-        // Show level completion message
-        const levelInfo = this.currentLevelData ? this.currentLevelData.levelInfo.description : 'Level';
+        // Show current game statistics
+        const stats = this.levelManager.getCompletionStats();
+        console.log(`Game progress: ${stats.totalCompleted}/${stats.totalLevels} levels completed`);
+        console.log(`Templates: ${stats.templatesCompleted}/${stats.totalTemplates}`);
+        console.log(`Random backgrounds: ${stats.randomBackgroundsCompleted}/${stats.totalRandomBackgrounds}`);
+        
+        // Check for next level
+        console.log('Checking for next level...');
         const nextLevelData = await this.levelManager.getNextLevel();
+        console.log('Next level data:', nextLevelData);
         
         if (nextLevelData) {
             // There are more levels
+            const levelInfo = this.currentLevelData ? this.currentLevelData.levelInfo.description : 'Level';
             const message = `🎉 ${levelInfo} completed!\nYou found all ${this.differences.length} differences!\n\nReady for the next level?`;
+            console.log('Showing level completion modal...');
             const playNext = await this.modal.showConfirm('Level Complete!', message);
+            console.log(`User chose to continue: ${playNext}`);
             
             if (playNext) {
+                console.log('Loading next level...');
                 this.loadNextLevel();
             } else {
+                console.log('User chose not to continue - stopping game');
                 this.isGameActive = false;
                 this.updateButtonStates();
             }
         } else {
             // All levels completed - entire game is finished!
+            console.log('All levels completed - game finished!');
             this.isGameActive = false;
             this.updateButtonStates();
             this.handleGameComplete();
