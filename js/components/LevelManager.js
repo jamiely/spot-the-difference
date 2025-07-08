@@ -82,12 +82,19 @@ export class LevelManager {
         // Wait for initialization if not complete
         await this.waitForInitialization();
         if (this.isGameComplete) {
+            console.log('Game is complete, returning null');
             return null;
         }
         
+        console.log(`Getting next level - current phase: ${this.currentPhase}`);
+        console.log(`Completed templates: [${this.completedTemplates.join(', ')}]`);
+        console.log(`Available templates: [${this.availableTemplates.map(t => t.name).join(', ')}]`);
+        
         if (this.currentPhase === 'templates') {
+            console.log('In templates phase, calling getNextTemplate()');
             return this.getNextTemplate();
         } else {
+            console.log('In random phase, calling getNextRandomBackground()');
             return this.getNextRandomBackground();
         }
     }
@@ -103,9 +110,11 @@ export class LevelManager {
             return this.getNextRandomBackground();
         }
         
+        console.log(`Checking for unused templates...`);
         const unusedTemplates = this.availableTemplates.filter(
             template => !this.completedTemplates.includes(template.name)
         );
+        console.log(`Found ${unusedTemplates.length} unused templates: [${unusedTemplates.map(t => t.name).join(', ')}]`);
         
         if (unusedTemplates.length === 0) {
             // All templates completed, move to random phase
@@ -134,12 +143,16 @@ export class LevelManager {
     getNextRandomBackground() {
         // Get backgrounds used in templates to avoid duplicates
         const templateBackgrounds = this.availableTemplates ? this.availableTemplates.map(t => t.background) : [];
+        console.log(`Template backgrounds to exclude: [${templateBackgrounds.join(', ')}]`);
+        console.log(`Completed random backgrounds: [${this.completedBackgrounds.join(', ')}]`);
+        console.log(`All available backgrounds: [${this.allBackgrounds.map(bg => bg.filename).join(', ')}]`);
         
         // Find unused backgrounds (not used in templates or previous random levels)
         const unusedBackgrounds = this.allBackgrounds.filter(bg => 
             !templateBackgrounds.includes(bg.filename) && 
             !this.completedBackgrounds.includes(bg.filename)
         );
+        console.log(`Unused backgrounds found: [${unusedBackgrounds.map(bg => bg.filename).join(', ')}]`);
         
         if (unusedBackgrounds.length === 0) {
             // All backgrounds completed - game is won!
@@ -167,11 +180,17 @@ export class LevelManager {
      * @param {string} identifier - Template name or background filename
      */
     completeLevel(type, identifier) {
+        console.log(`Completing level: type=${type}, identifier="${identifier}"`);
+        
         if (type === 'template') {
             if (!this.completedTemplates.includes(identifier)) {
                 this.completedTemplates.push(identifier);
                 console.log(`Template completed: ${identifier}`);
+                console.log(`Completed templates list: [${this.completedTemplates.join(', ')}]`);
+                console.log(`Available templates list: [${this.availableTemplates.map(t => t.name).join(', ')}]`);
                 console.log(`Templates remaining: ${this.availableTemplates.length - this.completedTemplates.length}`);
+            } else {
+                console.log(`Template ${identifier} was already completed`);
             }
         } else if (type === 'random') {
             if (!this.completedBackgrounds.includes(identifier)) {
@@ -185,6 +204,8 @@ export class LevelManager {
                     !this.completedBackgrounds.includes(bg.filename)
                 );
                 console.log(`Random backgrounds remaining: ${unusedBackgrounds.length}`);
+            } else {
+                console.log(`Random background ${identifier} was already completed`);
             }
         }
     }

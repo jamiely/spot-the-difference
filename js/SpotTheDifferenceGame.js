@@ -599,8 +599,15 @@ export class SpotTheDifferenceGame extends Game {
         console.log(`Difference found: ${difference.id} (${this.foundDifferences.length}/${this.differences.length})`);
         
         // Check if all differences are found
+        console.log(`Difference check: ${this.foundDifferences.length}/${this.differences.length} differences found`);
+        console.log(`Found differences: [${this.foundDifferences.join(', ')}]`);
+        console.log(`All differences: [${this.differences.map(d => d.id).join(', ')}]`);
+        
         if (this.foundDifferences.length === this.differences.length) {
+            console.log('All differences found - calling endGame()');
             this.endGame();
+        } else {
+            console.log('Not all differences found yet - continuing game');
         }
     }
     
