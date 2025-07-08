@@ -772,6 +772,11 @@ export class SpotTheDifferenceGame extends Game {
         this.differences = [];
         this.foundDifferences = [];
         
+        // Reset the score display to 0 for the new level
+        document.dispatchEvent(new CustomEvent('differenceFound', {
+            detail: { totalFound: 0 }
+        }));
+        
         // Clear any orphaned sprite elements that might exist in the DOM
         this.clearOrphanedSprites();
         
