@@ -20,6 +20,9 @@ export class SpotTheDifferenceGame extends Game {
         this.currentTemplate = null;
         this.isSpotTheeDifferenceMode = true;
         
+        // Running total of differences found across all levels in current game
+        this.totalDifferencesFound = 0;
+        
         // Level progression system
         this.levelManager = new LevelManager(this.templateManager, this.backgroundLoader);
         this.currentLevelData = null;
@@ -93,6 +96,9 @@ export class SpotTheDifferenceGame extends Game {
     async startGame() {
         this.isGameActive = true;
         this.updateButtonStates();
+        
+        // Reset the running total at the start of a new game
+        this.totalDifferencesFound = 0;
         
         // Show the side-by-side boards and hide legacy board
         document.querySelector('.game-boards').style.display = 'flex';
@@ -587,6 +593,9 @@ export class SpotTheDifferenceGame extends Game {
     markDifferenceFound(difference, side, clickX, clickY) {
         this.foundDifferences.push(difference.id);
         
+        // Increment the running total for the entire game
+        this.totalDifferencesFound++;
+        
         // Create green checkmark markers on both sides at the difference center
         this.createDifferenceMarker(difference.centerX, difference.centerY, 'left', '✓', '#28a745');
         this.createDifferenceMarker(difference.centerX, difference.centerY, 'right', '✓', '#28a745');
@@ -597,6 +606,7 @@ export class SpotTheDifferenceGame extends Game {
         }));
         
         console.log(`Difference found: ${difference.id} (${this.foundDifferences.length}/${this.differences.length})`);
+        console.log(`Total differences found in game: ${this.totalDifferencesFound}`);
         
         // Check if all differences are found
         console.log(`Difference check: ${this.foundDifferences.length}/${this.differences.length} differences found`);
