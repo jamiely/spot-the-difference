@@ -5,9 +5,11 @@ test.describe('Spot-the-Difference Game - Basic Functionality', () => {
   test('Game initialization and basic gameplay', async ({ page }) => {
     // Navigate to the game
     await page.goto('/');
+    await page.waitForSelector('#start-game');
     
-    // Game starts automatically, so verify it's already loaded
-    await page.waitForTimeout(3000); // Wait for game to fully initialize
+    // Start the game manually
+    await page.click('#start-game');
+    await page.waitForSelector('.game-sprite', { timeout: 10000 });
     
     // Confirm game loads with dual-side layout
     const leftBoard = page.locator('#game-board-left');
@@ -161,27 +163,21 @@ test.describe('Spot-the-Difference Game - Basic Functionality', () => {
     }
   });
 
-  test('Reveal all differences with ! key', async ({ page }) => {
+  test('Auto-complete level with $ key', async ({ page }) => {
     await page.goto('/');
     await page.waitForTimeout(3000);
     
-    // Press ! key to reveal all differences
-    await page.keyboard.press('!');
+    // Press $ key to auto-complete level
+    await page.keyboard.press('$');
     await page.waitForTimeout(1000);
     
-    // Check for any difference markers (revealed differences)
-    const allMarkers = page.locator('.difference-marker');
-    const markerCount = await allMarkers.count();
+    // Check if modal appears (level completed)
+    const modal = page.locator('.game-modal-overlay');
+    await expect(modal).toBeVisible();
     
-    // Should have some markers appear after revealing
-    expect(markerCount).toBeGreaterThan(0);
-    
-    if (markerCount > 0) {
-      // Verify markers contain circle symbol for revealed differences
-      const markersWithCircle = page.locator('.difference-marker:has-text("◌")');
-      const circleCount = await markersWithCircle.count();
-      expect(circleCount).toBeGreaterThan(0);
-    }
+    // Verify the modal contains completion message
+    const modalText = await modal.textContent();
+    expect(modalText).toContain('Level Complete!');
   });
 
   test('Click outside background should not cause errors', async ({ page }) => {

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Sprite Bounds Checking', () => {
     test.beforeEach(async ({ page }) => {
         // Navigate to the game with seed for reproducible testing
-        await page.goto('http://localhost:3000/?seed=54321');
+        await page.goto('/?seed=54321&random=true');
         
         // Wait for the game to be ready
         await page.waitForSelector('#start-game');
@@ -68,7 +68,7 @@ test.describe('Sprite Bounds Checking', () => {
         await page.waitForSelector('.game-sprite', { timeout: 10000 });
         
         // Complete level to potentially get different background
-        await page.keyboard.press('!');
+        await page.keyboard.press('$');
         
         // Handle modals
         try {
@@ -173,7 +173,7 @@ test.describe('Sprite Bounds Checking', () => {
         await page.waitForSelector('.game-sprite', { timeout: 10000 });
         
         // Complete level and check for warnings during sprite regeneration
-        await page.keyboard.press('!');
+        await page.keyboard.press('$');
         
         try {
             await page.waitForSelector('.game-modal-overlay', { timeout: 5000 });
@@ -199,7 +199,7 @@ test.describe('Sprite Bounds Checking', () => {
         const seeds = ['12345', '67890', '99999'];
         
         for (const seed of seeds) {
-            await page.goto(`http://localhost:3000/?seed=${seed}`);
+            await page.goto(`/?seed=${seed}&random=true`);
             await page.waitForSelector('#start-game');
             await page.click('#start-game');
             await page.waitForSelector('.game-sprite', { timeout: 10000 });
@@ -261,7 +261,7 @@ test.describe('Sprite Bounds Checking', () => {
         expect(templateViolations).toBe(0);
         
         // Complete level to get random placement
-        await page.keyboard.press('!');
+        await page.keyboard.press('$');
         
         try {
             await page.waitForSelector('.game-modal-overlay', { timeout: 5000 });

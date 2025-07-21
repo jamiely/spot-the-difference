@@ -1,7 +1,7 @@
-import { SPRITE_CONFIG } from '../config/SpriteConfig.js';
-import { TemplateManager } from '../utils/TemplateManager.js';
-import { SpritePositioning } from '../utils/SpritePositioning.js';
-import { ViewManager } from '../utils/ViewManager.js';
+import { SPRITE_CONFIG } from '../config/SpriteConfig.ts';
+import { TemplateManager } from '../utils/TemplateManager.ts';
+import { SpritePositioning } from '../utils/SpritePositioning.ts';
+import { ViewManager } from '../utils/ViewManager.ts';
 
 export class PlacementMode {
     constructor() {
@@ -1258,7 +1258,7 @@ export class PlacementMode {
         // Create sprites for each template sprite
         for (const spriteData of template.sprites) {
             try {
-                // Request sprite creation from Game.js using the same method as SpotTheDifferenceGame
+                // Request sprite creation from Game.ts using the same method as SpotTheDifferenceGame
                 const x = spriteData.renderCoordinates ? spriteData.renderCoordinates.x : spriteData.x;
                 const y = spriteData.renderCoordinates ? spriteData.renderCoordinates.y : spriteData.y;
                 this.dispatchEvent('requestSpriteCreation', {

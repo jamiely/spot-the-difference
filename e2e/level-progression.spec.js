@@ -10,9 +10,13 @@ test.describe('Level Progression System', () => {
     });
     
     await page.goto('/');
-    await page.waitForTimeout(5000); // Wait for auto-start to complete
+    await page.waitForSelector('#start-game');
     
-    // The game should auto-start, so verify it started properly
+    // Start the game manually
+    await page.click('#start-game');
+    await page.waitForSelector('.game-sprite', { timeout: 10000 });
+    
+    // Verify the game started properly
     const leftBg = page.locator('#background-image-left');
     const rightBg = page.locator('#background-image-right');
     await expect(leftBg).toBeVisible();
@@ -148,7 +152,7 @@ test.describe('Level Progression System', () => {
     });
     
     // Complete the level (simplified - just use reveal all differences and click on actual sprites)
-    await page.keyboard.press('!');
+    await page.keyboard.press('$');
     await page.waitForTimeout(1000);
     
     // Click on left-side sprites to complete the level (avoid clicking markers which are non-interactive)

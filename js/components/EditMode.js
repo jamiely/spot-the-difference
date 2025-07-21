@@ -1,4 +1,4 @@
-import { ViewManager } from '../utils/ViewManager.js';
+import { ViewManager } from '../utils/ViewManager.ts';
 
 export class EditMode {
     constructor() {

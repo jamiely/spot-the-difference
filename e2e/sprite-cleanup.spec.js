@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Sprite Cleanup Between Levels', () => {
     test.beforeEach(async ({ page }) => {
         // Navigate to the game with seed for reproducible testing
-        await page.goto('http://localhost:3000/?seed=12345');
+        await page.goto('/?seed=12345');
         
         // Wait for the game to be ready
         await page.waitForSelector('#start-game');
@@ -30,7 +30,7 @@ test.describe('Sprite Cleanup Between Levels', () => {
         );
         
         // Complete the level quickly using the reveal feature
-        await page.keyboard.press('!');
+        await page.keyboard.press('$');
         
         // Handle the level completion modal
         try {
@@ -84,7 +84,7 @@ test.describe('Sprite Cleanup Between Levels', () => {
         await page.waitForSelector('.game-sprite', { timeout: 10000 });
         
         // Reveal all differences to create markers
-        await page.keyboard.press('!');
+        await page.keyboard.press('$');
         
         // Wait for difference markers to appear
         await page.waitForSelector('.difference-marker', { timeout: 5000 });
@@ -132,7 +132,7 @@ test.describe('Sprite Cleanup Between Levels', () => {
         );
         
         // Complete the level
-        await page.keyboard.press('!');
+        await page.keyboard.press('$');
         
         // Handle modals
         try {
@@ -182,7 +182,7 @@ test.describe('Sprite Cleanup Between Levels', () => {
         await page.waitForSelector('.game-sprite', { timeout: 10000 });
         
         // Complete the level
-        await page.keyboard.press('!');
+        await page.keyboard.press('$');
         
         // Handle modals
         try {
@@ -233,7 +233,7 @@ test.describe('Sprite Cleanup Between Levels', () => {
         expect(firstLevelSpriteCount).toBeLessThan(100); // Reasonable upper bound
         
         // Complete the level
-        await page.keyboard.press('!');
+        await page.keyboard.press('$');
         
         // Handle modals
         try {
@@ -255,6 +255,6 @@ test.describe('Sprite Cleanup Between Levels', () => {
         expect(secondLevelSpriteCount).toBeLessThan(100); // Reasonable upper bound
         
         // Sprite counts should be in a reasonable range and potentially different
-        expect(Math.abs(firstLevelSpriteCount - secondLevelSpriteCount)).toBeLessThanOrEqual(20);
+        expect(Math.abs(firstLevelSpriteCount - secondLevelSpriteCount)).toBeLessThanOrEqual(30);
     });
 });

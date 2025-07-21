@@ -4,7 +4,11 @@ test.describe('Edit Mode - Bounding Box Creation', () => {
   
   test('Edit mode activation and interface', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(3000); // Wait for game to auto-start
+    await page.waitForSelector('#start-game');
+    
+    // Start the game first
+    await page.click('#start-game');
+    await page.waitForSelector('.game-sprite', { timeout: 10000 });
     
     // Press 'e' key to enter edit mode
     await page.keyboard.press('e');
@@ -34,7 +38,11 @@ test.describe('Edit Mode - Bounding Box Creation', () => {
 
   test('Create bounding box by click and drag', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(3000);
+    await page.waitForSelector('#start-game');
+    
+    // Start the game first
+    await page.click('#start-game');
+    await page.waitForSelector('.game-sprite', { timeout: 10000 });
     
     // Enter edit mode
     await page.keyboard.press('e');
@@ -96,7 +104,11 @@ test.describe('Edit Mode - Bounding Box Creation', () => {
 
   test('Edit mode control buttons functionality', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(3000);
+    await page.waitForSelector('#start-game');
+    
+    // Start the game first
+    await page.click('#start-game');
+    await page.waitForSelector('.game-sprite', { timeout: 10000 });
     
     // Enter edit mode
     await page.keyboard.press('e');
@@ -134,7 +146,11 @@ test.describe('Edit Mode - Bounding Box Creation', () => {
 
   test('Exit edit mode with Escape key', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(3000);
+    await page.waitForSelector('#start-game');
+    
+    // Start the game first
+    await page.click('#start-game');
+    await page.waitForSelector('.game-sprite', { timeout: 10000 });
     
     // Enter edit mode
     await page.keyboard.press('e');
@@ -160,7 +176,11 @@ test.describe('Edit Mode - Bounding Box Creation', () => {
 
   test('Edit mode JSON persistence after mode switch', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(3000);
+    await page.waitForSelector('#start-game');
+    
+    // Start the game first
+    await page.click('#start-game');
+    await page.waitForSelector('.game-sprite', { timeout: 10000 });
     
     // Enter edit mode and add some JSON data manually
     await page.keyboard.press('e');
@@ -197,7 +217,11 @@ test.describe('Edit Mode - Bounding Box Creation', () => {
 
   test('Edit mode interface validation', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(3000);
+    await page.waitForSelector('#start-game');
+    
+    // Start the game first
+    await page.click('#start-game');
+    await page.waitForSelector('.game-sprite', { timeout: 10000 });
     
     // Enter edit mode
     await page.keyboard.press('e');
